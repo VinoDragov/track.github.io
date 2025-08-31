@@ -40,6 +40,10 @@ h1 {
     margin: 0;
 }
 
+.menu-container {
+    position: relative;
+}
+
 .menu-button {
     background: none;
     border: none;
@@ -84,6 +88,7 @@ h1 {
     align-items: center;
     gap: 0.5rem;
     transition: background-color 0.3s;
+    color: var(--text-color);
 }
 
 .nav-item:hover {
