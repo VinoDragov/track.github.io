@@ -4,6 +4,7 @@ let currentDate = new Date();
 let calendarDate = new Date();
 let longPressTimer = null;
 let currentHabitToDelete = null;
+let isLongPressActive = false; // Nouveau flag pour suivre l'état de l'appui long
 
 // Éléments DOM
 const habitsContainer = document.getElementById('habits-container');
@@ -78,6 +79,12 @@ function addHabit() {
 }
 
 function toggleHabitDate(habitId, date) {
+    // Si un appui long est en cours, ignorer le toggle
+    if (isLongPressActive) {
+        isLongPressActive = false;
+        return;
+    }
+    
     const habit = habits.find(h => h.id === habitId);
     if (!habit) return;
     
@@ -164,9 +171,16 @@ function renderHabits() {
         // Ajouter l'événement pour la case à cocher
         const checkbox = habitElement.querySelector('.day-checkbox');
         checkbox.addEventListener('click', (e) => {
-            e.stopPropagation(); // Empêche la propagation à l'élément parent
+            e.stopPropagation();
             const date = new Date(checkbox.dataset.date);
             toggleHabitDate(habit.id, date);
+        });
+        
+        // Empêcher les événements de la checkbox de déclencher l'appui long
+        ['mousedown', 'touchstart'].forEach(event => {
+            checkbox.addEventListener(event, (e) => {
+                e.stopPropagation();
+            });
         });
         
         // Ajouter les événements pour l'appui long
@@ -182,10 +196,12 @@ function setupLongPress(element, habitId) {
         // Ignorer complètement si l'élément cliqué est la checkbox
         if (e.target.closest('.day-checkbox')) return;
         
+        isLongPressActive = false;
         pressTimer = setTimeout(() => {
+            isLongPressActive = true;
             currentHabitToDelete = habitId;
             overlay.classList.add('visible');
-        }, 1000);
+        }, 500); // Réduire le temps d'appui long pour une meilleure expérience
     };
     
     const endPress = () => {
@@ -197,7 +213,7 @@ function setupLongPress(element, habitId) {
     };
     
     // Événements tactiles
-    element.addEventListener('touchstart', startPress);
+    element.addEventListener('touchstart', startPress, {passive: true});
     element.addEventListener('touchend', endPress);
     element.addEventListener('touchmove', () => {
         clearTimeout(pressTimer);
