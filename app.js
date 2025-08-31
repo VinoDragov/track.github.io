@@ -36,7 +36,7 @@ function addHabit() {
     const category = habitCategoryInput.value.trim();
     
     if (!name) {
-        alert('Veuillez entrer un nom pour votre habitude');
+        alert('Veuillez entrer un nom pour votre activité');
         return;
     }
     
@@ -79,7 +79,7 @@ function toggleHabitDate(habitId, date) {
 }
 
 function deleteHabit(habitId) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette habitude ?')) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette activité ?')) {
         habits = habits.filter(h => h.id !== habitId);
         saveHabits();
         renderHabits();
@@ -93,8 +93,8 @@ function renderHabits() {
     if (habits.length === 0) {
         habitsContainer.innerHTML = `
             <div class="empty-state">
-                <p>Vous n'avez aucune habitude enregistrée.</p>
-                <p>Appuyez sur le bouton "+" pour ajouter votre première habitude !</p>
+                <p>Vous n'avez aucune activité enregistrée.</p>
+                <p>Appuyez sur le bouton "+" pour ajouter votre première activité !</p>
             </div>
         `;
         return;
@@ -327,12 +327,12 @@ function updateStats() {
     longestStreakElement.textContent = globalLongestStreak;
 }
 
-// Gestion des vues (habitudes vs calendrier)
+// Gestion des vues (activités vs calendrier)
 function toggleView() {
     if (habitsView.classList.contains('active')) {
         habitsView.classList.remove('active');
         calendarView.classList.add('active');
-        viewToggle.textContent = 'Habitudes';
+        viewToggle.textContent = 'Activités';
         renderCalendar();
     } else {
         calendarView.classList.remove('active');
