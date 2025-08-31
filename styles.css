@@ -1,0 +1,242 @@
+:root {
+    --primary-color: #4caf50;
+    --secondary-color: #388e3c;
+    --background-color: #f5f5f5;
+    --card-color: #ffffff;
+    --text-color: #333333;
+    --disabled-color: #cccccc;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 0;
+    margin: 0;
+}
+
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+h1 {
+    font-size: 1.5rem;
+    text-align: center;
+    margin: 0;
+}
+
+.container {
+    max-width: 100%;
+    padding: 1rem;
+    padding-bottom: 80px;
+}
+
+.habit-form {
+    background-color: var(--card-color);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+input, select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    width: 100%;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: var(--secondary-color);
+}
+
+.habits-list {
+    display: grid;
+    grid-gap: 1rem;
+}
+
+.habit-card {
+    background-color: var(--card-color);
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.habit-title {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.habit-frequency {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.habit-tracker {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.day-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    margin: 0 0.2rem;
+}
+
+.day-label {
+    font-size: 0.7rem;
+    margin-bottom: 0.3rem;
+}
+
+.day-checkbox {
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--primary-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.day-checkbox.checked {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.delete-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: none;
+    border: none;
+    color: #f44336;
+    font-size: 1.2rem;
+    width: auto;
+    padding: 0.2rem;
+    cursor: pointer;
+}
+
+.stats {
+    background-color: var(--card-color);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stats h2 {
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.stat-card {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #e8f5e9;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.install-btn {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    width: auto;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+.streak-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .habit-tracker {
+        justify-content: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
