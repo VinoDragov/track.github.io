@@ -7,7 +7,8 @@ let calendarDate = new Date();
 const habitsContainer = document.getElementById('habits-container');
 const habitsView = document.getElementById('habits-view');
 const calendarView = document.getElementById('calendar-view');
-const viewToggle = document.getElementById('view-toggle');
+const menuButton = document.getElementById('menu-button');
+const navigationMenu = document.getElementById('navigation-menu');
 const calendarElement = document.getElementById('calendar');
 const currentMonthElement = document.getElementById('current-month');
 const prevMonthButton = document.getElementById('prev-month');
@@ -23,6 +24,7 @@ const addHabitModal = document.getElementById('add-habit-modal');
 const closeModal = document.querySelector('.close');
 const todayDateElement = document.getElementById('today-date');
 const calendarLegend = document.getElementById('calendar-legend');
+const navItems = document.querySelectorAll('.nav-item');
 
 // Fonctions de base
 function saveHabits() {
@@ -251,18 +253,31 @@ function getFrequencyText(frequency) {
     }
 }
 
-// Gestion des vues (activités vs calendrier)
-function toggleView() {
-    if (habitsView.classList.contains('active')) {
-        habitsView.classList.remove('active');
-        calendarView.classList.add('active');
-        viewToggle.textContent = 'Activités';
+// Gestion du menu de navigation
+function toggleMenu() {
+    navigationMenu.classList.toggle('open');
+}
+
+function closeMenu() {
+    navigationMenu.classList.remove('open');
+}
+
+function switchView(viewId) {
+    // Masquer toutes les vues
+    document.querySelectorAll('.view').forEach(view => {
+        view.classList.remove('active');
+    });
+    
+    // Afficher la vue sélectionnée
+    document.getElementById(viewId).classList.add('active');
+    
+    // Si on passe à la vue calendrier, on le rend
+    if (viewId === 'calendar-view') {
         renderCalendar();
-    } else {
-        calendarView.classList.remove('active');
-        habitsView.classList.add('active');
-        viewToggle.textContent = 'Calendrier';
     }
+    
+    // Fermer le menu
+    closeMenu();
 }
 
 // Navigation dans le calendrier
@@ -272,7 +287,23 @@ function changeMonth(direction) {
 }
 
 // Événements
-viewToggle.addEventListener('click', toggleView);
+menuButton.addEventListener('click', toggleMenu);
+
+// Fermer le menu en cliquant à l'extérieur
+document.addEventListener('click', (event) => {
+    if (!menuButton.contains(event.target) && !navigationMenu.contains(event.target)) {
+        closeMenu();
+    }
+});
+
+// Navigation entre les vues
+navItems.forEach(item => {
+    item.addEventListener('click', () => {
+        const viewId = item.getAttribute('data-view');
+        switchView(viewId);
+    });
+});
+
 prevMonthButton.addEventListener('click', () => changeMonth(-1));
 nextMonthButton.addEventListener('click', () => changeMonth(1));
 saveHabitButton.addEventListener('click', addHabit);
