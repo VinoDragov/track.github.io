@@ -164,7 +164,7 @@ function renderHabits() {
         // Ajouter l'événement pour la case à cocher
         const checkbox = habitElement.querySelector('.day-checkbox');
         checkbox.addEventListener('click', (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Empêche la propagation à l'élément parent
             const date = new Date(checkbox.dataset.date);
             toggleHabitDate(habit.id, date);
         });
@@ -179,7 +179,7 @@ function setupLongPress(element, habitId) {
     const overlay = element.querySelector('.delete-confirm-overlay');
     
     const startPress = (e) => {
-        // Empêcher le déclenchement du clic sur la checkbox
+        // Ignorer complètement si l'élément cliqué est la checkbox
         if (e.target.closest('.day-checkbox')) return;
         
         pressTimer = setTimeout(() => {
