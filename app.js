@@ -254,7 +254,8 @@ function getFrequencyText(frequency) {
 }
 
 // Gestion du menu de navigation
-function toggleMenu() {
+function toggleMenu(event) {
+    event.stopPropagation(); // Empêcher la propagation du clic
     navigationMenu.classList.toggle('open');
 }
 
@@ -291,7 +292,7 @@ menuButton.addEventListener('click', toggleMenu);
 
 // Fermer le menu en cliquant à l'extérieur
 document.addEventListener('click', (event) => {
-    if (!menuButton.contains(event.target) && !navigationMenu.contains(event.target)) {
+    if (!event.target.closest('.menu-container')) {
         closeMenu();
     }
 });
