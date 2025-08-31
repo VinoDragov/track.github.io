@@ -58,8 +58,19 @@
             <span class="close">&times;</span>
             <h2>Nouvelle Activité</h2>
             <div class="form-group">
+                <label for="habit-emoji">Emoji</label>
+                <input type="text" id="habit-emoji" placeholder="Ex: 🏃‍♂️, 📚, 🧘‍♀️..." maxlength="2">
+                <div class="emoji-suggestions">
+                    <span class="emoji-suggestion" data-emoji="🏃‍♂️">🏃‍♂️ Sport</span>
+                    <span class="emoji-suggestion" data-emoji="📚">📚 Lecture</span>
+                    <span class="emoji-suggestion" data-emoji="🧘‍♀️">🧘‍♀️ Méditation</span>
+                    <span class="emoji-suggestion" data-emoji="💧">💧 Eau</span>
+                    <span class="emoji-suggestion" data-emoji="🎨">🎨 Créativité</span>
+                </div>
+            </div>
+            <div class="form-group">
                 <label for="habit-name">Nom de l'activité</label>
-                <input type="text" id="habit-name" placeholder="Ex: Méditation, Sport, Lecture...">
+                <input type="text" id="habit-name" placeholder="Ex: Course à pied, Lecture, Méditation...">
             </div>
             <div class="form-group">
                 <label for="habit-color">Couleur</label>
@@ -70,6 +81,18 @@
                 <input type="number" id="habit-duration" min="1" value="15">
             </div>
             <button id="save-habit">Ajouter l'activité</button>
+        </div>
+    </div>
+
+    <!-- Modal de confirmation de suppression -->
+    <div id="delete-confirm-modal" class="modal">
+        <div class="modal-content">
+            <h2>Supprimer l'activité</h2>
+            <p>Êtes-vous sûr de vouloir supprimer cette activité ?</p>
+            <div class="modal-buttons">
+                <button id="cancel-delete" class="secondary-btn">Annuler</button>
+                <button id="confirm-delete">Supprimer</button>
+            </div>
         </div>
     </div>
 
