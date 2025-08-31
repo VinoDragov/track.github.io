@@ -21,16 +21,12 @@ const saveHabitButton = document.getElementById('save-habit');
 const addHabitButton = document.getElementById('add-habit-btn');
 const addHabitModal = document.getElementById('add-habit-modal');
 const closeModal = document.querySelector('.close');
-const totalHabitsElement = document.getElementById('total-habits');
-const completionRateElement = document.getElementById('completion-rate');
-const currentStreakElement = document.getElementById('current-streak');
-const longestStreakElement = document.getElementById('longest-streak');
+const todayDateElement = document.getElementById('today-date');
 const calendarLegend = document.getElementById('calendar-legend');
 
 // Fonctions de base
 function saveHabits() {
     localStorage.setItem('habits', JSON.stringify(habits));
-    updateStats();
     renderCalendarLegend();
 }
 
@@ -79,6 +75,13 @@ function toggleHabitDate(habitId, date) {
     const habit = habits.find(h => h.id === habitId);
     if (!habit) return;
     
+    // Ne pas permettre de cocher les jours futurs
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (date > today) {
+        return;
+    }
+    
     const dateStr = date.toDateString();
     const index = habit.completedDates.indexOf(dateStr);
     
@@ -105,6 +108,11 @@ function deleteHabit(habitId) {
 function renderHabits() {
     habitsContainer.innerHTML = '';
     
+    // Mettre à jour la date d'aujourd'hui
+    const today = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    todayDateElement.textContent = today.toLocaleDateString('fr-FR', options);
+    
     if (habits.length === 0) {
         habitsContainer.innerHTML = `
             <div class="empty-state">
@@ -120,30 +128,10 @@ function renderHabits() {
         habitElement.className = 'habit-card';
         habitElement.style.borderLeftColor = habit.color;
         
-        // Générer les 7 derniers jours pour le suivi
-        const days = [];
-        for (let i = 6; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            days.push(date);
-        }
-        
-        const dayBoxes = days.map(date => {
-            const isChecked = habit.completedDates.includes(date.toDateString());
-            return `
-                <div class="day-box">
-                    <div class="day-label">${date.getDate()}/${date.getMonth() + 1}</div>
-                    <div class="day-checkbox ${isChecked ? 'checked' : ''}" 
-                         data-date="${date.toISOString()}"
-                         style="${isChecked ? `background-color: ${habit.color}; border-color: ${habit.color}` : ''}">
-                        ${isChecked ? '✓' : ''}
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-        // Calculer les séries
-        const { currentStreak, longestStreak } = calculateStreaks(habit);
+        // Vérifier si l'activité est déjà cochée aujourd'hui
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const isCheckedToday = habit.completedDates.includes(today.toDateString());
         
         habitElement.innerHTML = `
             <div class="habit-title">
@@ -155,21 +143,25 @@ function renderHabits() {
                 <span class="habit-duration">${habit.duration} min</span>
                 <span>${getFrequencyText(habit.frequency)}</span>
             </div>
-            <div class="streak-info">
-                <span>Série actuelle: ${currentStreak} jours</span>
-                <span>Record: ${longestStreak} jours</span>
+            <div class="habit-tracker">
+                <div class="day-box">
+                    <div class="day-label">Aujourd'hui</div>
+                    <div class="day-checkbox ${isCheckedToday ? 'checked' : ''}" 
+                         data-date="${today.toISOString()}"
+                         style="${isCheckedToday ? `background-color: ${habit.color}; border-color: ${habit.color}` : `border-color: ${habit.color}`}">
+                        ${isCheckedToday ? '✓' : ''}
+                    </div>
+                </div>
             </div>
-            <div class="habit-tracker">${dayBoxes}</div>
         `;
         
         habitsContainer.appendChild(habitElement);
         
-        // Ajouter les événements pour les cases à cocher
-        habitElement.querySelectorAll('.day-checkbox').forEach(box => {
-            box.addEventListener('click', () => {
-                const date = new Date(box.dataset.date);
-                toggleHabitDate(habit.id, date);
-            });
+        // Ajouter l'événement pour la case à cocher
+        const checkbox = habitElement.querySelector('.day-checkbox');
+        checkbox.addEventListener('click', () => {
+            const date = new Date(checkbox.dataset.date);
+            toggleHabitDate(habit.id, date);
         });
         
         // Ajouter l'événement pour le bouton de suppression
@@ -250,60 +242,6 @@ function getCompletedHabitsForDate(date) {
     return habits.filter(habit => habit.completedDates.includes(dateStr));
 }
 
-function calculateStreaks(habit) {
-    if (habit.completedDates.length === 0) {
-        return { currentStreak: 0, longestStreak: 0 };
-    }
-    
-    // Trier les dates du plus récent au plus ancien
-    const sortedDates = habit.completedDates
-        .map(dateStr => new Date(dateStr))
-        .sort((a, b) => b - a);
-    
-    let currentStreak = 0;
-    let longestStreak = 0;
-    let tempStreak = 1;
-    
-    // Vérifier la série actuelle (jours consécutifs jusqu'à aujourd'hui)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    for (let i = 0; i < sortedDates.length; i++) {
-        const currentDate = new Date(sortedDates[i]);
-        currentDate.setHours(0, 0, 0, 0);
-        
-        const nextDate = i > 0 ? new Date(sortedDates[i-1]) : null;
-        if (nextDate) {
-            nextDate.setHours(0, 0, 0, 0);
-            
-            // Vérifier si les dates sont consécutives
-            const diffTime = nextDate - currentDate;
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (diffDays === 1) {
-                tempStreak++;
-            } else {
-                if (tempStreak > longestStreak) longestStreak = tempStreak;
-                tempStreak = 1;
-            }
-        }
-        
-        // Vérifier la série actuelle
-        if (i === 0) {
-            const diffToday = today - currentDate;
-            const diffDays = Math.floor(diffToday / (1000 * 60 * 60 * 24));
-            
-            if (diffDays === 0 || (diffDays === 1 && currentStreak === 0)) {
-                currentStreak = tempStreak;
-            }
-        }
-    }
-    
-    if (tempStreak > longestStreak) longestStreak = tempStreak;
-    
-    return { currentStreak, longestStreak };
-}
-
 function getFrequencyText(frequency) {
     switch(frequency) {
         case 'daily': return 'Quotidienne';
@@ -311,45 +249,6 @@ function getFrequencyText(frequency) {
         case 'monthly': return 'Mensuelle';
         default: return frequency;
     }
-}
-
-function updateStats() {
-    totalHabitsElement.textContent = habits.length;
-    
-    if (habits.length === 0) {
-        completionRateElement.textContent = '0%';
-        currentStreakElement.textContent = '0';
-        longestStreakElement.textContent = '0';
-        return;
-    }
-    
-    // Calculer le taux de réussite global
-    const today = new Date().toDateString();
-    let totalPossible = 0;
-    let totalCompleted = 0;
-    
-    habits.forEach(habit => {
-        totalPossible++;
-        if (habit.completedDates.includes(today)) {
-            totalCompleted++;
-        }
-    });
-    
-    const completionRate = Math.round((totalCompleted / totalPossible) * 100);
-    completionRateElement.textContent = `${completionRate}%`;
-    
-    // Calculer les séries globales
-    let globalCurrentStreak = 0;
-    let globalLongestStreak = 0;
-    
-    habits.forEach(habit => {
-        const { currentStreak, longestStreak } = calculateStreaks(habit);
-        if (currentStreak > globalCurrentStreak) globalCurrentStreak = currentStreak;
-        if (longestStreak > globalLongestStreak) globalLongestStreak = longestStreak;
-    });
-    
-    currentStreakElement.textContent = globalCurrentStreak;
-    longestStreakElement.textContent = globalLongestStreak;
 }
 
 // Gestion des vues (activités vs calendrier)
@@ -393,5 +292,4 @@ window.addEventListener('click', (event) => {
 
 // Initialisation
 renderHabits();
-updateStats();
 renderCalendarLegend();
