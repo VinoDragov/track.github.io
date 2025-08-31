@@ -34,19 +34,8 @@
             <div class="calendar" id="calendar">
                 <!-- Le calendrier sera généré ici dynamiquement -->
             </div>
-            <div class="calendar-legend">
-                <div class="legend-item">
-                    <div class="color-box completed"></div>
-                    <span>Réalisée</span>
-                </div>
-                <div class="legend-item">
-                    <div class="color-box partial"></div>
-                    <span>Partielle</span>
-                </div>
-                <div class="legend-item">
-                    <div class="color-box missed"></div>
-                    <span>Non réalisée</span>
-                </div>
+            <div class="calendar-legend" id="calendar-legend">
+                <!-- La légende sera générée ici dynamiquement -->
             </div>
         </div>
 
@@ -85,6 +74,14 @@
             <div class="form-group">
                 <label for="habit-name">Nom de l'activité</label>
                 <input type="text" id="habit-name" placeholder="Ex: Méditation, Sport, Lecture...">
+            </div>
+            <div class="form-group">
+                <label for="habit-color">Couleur</label>
+                <input type="color" id="habit-color" value="#4caf50">
+            </div>
+            <div class="form-group">
+                <label for="habit-duration">Durée (minutes)</label>
+                <input type="number" id="habit-duration" min="1" value="15">
             </div>
             <div class="form-group">
                 <label for="habit-frequency">Fréquence</label>
