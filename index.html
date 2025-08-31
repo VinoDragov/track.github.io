@@ -19,6 +19,9 @@
     <div class="container">
         <!-- Section Activités (vue par défaut) -->
         <div id="habits-view" class="view active">
+            <div class="current-date">
+                <h2 id="today-date">Aujourd'hui</h2>
+            </div>
             <div class="habits-list" id="habits-container">
                 <!-- Les activités seront ajoutées ici dynamiquement -->
             </div>
@@ -36,29 +39,6 @@
             </div>
             <div class="calendar-legend" id="calendar-legend">
                 <!-- La légende sera générée ici dynamiquement -->
-            </div>
-        </div>
-
-        <!-- Section Statistiques -->
-        <div class="stats">
-            <h2>Progrès</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="total-habits">0</div>
-                    <div class="stat-label">Activités</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="completion-rate">0%</div>
-                    <div class="stat-label">Taux de réussite</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="current-streak">0</div>
-                    <div class="stat-label">Série actuelle</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="longest-streak">0</div>
-                    <div class="stat-label">Record série</div>
-                </div>
             </div>
         </div>
     </div>
