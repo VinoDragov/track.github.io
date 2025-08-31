@@ -2,9 +2,7 @@
 let habits = JSON.parse(localStorage.getItem('habits')) || [];
 let currentDate = new Date();
 let calendarDate = new Date();
-let longPressTimer = null;
 let currentHabitToDelete = null;
-let isLongPressActive = false; // Nouveau flag pour suivre l'état de l'appui long
 
 // Éléments DOM
 const habitsContainer = document.getElementById('habits-container');
@@ -79,12 +77,6 @@ function addHabit() {
 }
 
 function toggleHabitDate(habitId, date) {
-    // Si un appui long est en cours, ignorer le toggle
-    if (isLongPressActive) {
-        isLongPressActive = false;
-        return;
-    }
-    
     const habit = habits.find(h => h.id === habitId);
     if (!habit) return;
     
@@ -156,13 +148,13 @@ function renderHabits() {
                     </div>
                 </div>
             </div>
-            <div class="day-checkbox ${isCheckedToday ? 'checked' : ''}" 
-                 data-date="${today.toISOString()}"
-                 style="${isCheckedToday ? `background-color: ${habit.color}; border-color: ${habit.color}` : `border-color: ${habit.color}`}">
-                ${isCheckedToday ? '✓' : ''}
-            </div>
-            <div class="delete-confirm-overlay">
-                <span class="delete-text">Relâchez pour supprimer</span>
+            <div class="habit-actions">
+                <button class="delete-habit-btn" title="Supprimer cette activité">🗑️</button>
+                <div class="day-checkbox ${isCheckedToday ? 'checked' : ''}" 
+                     data-date="${today.toISOString()}"
+                     style="${isCheckedToday ? `background-color: ${habit.color}; border-color: ${habit.color}` : `border-color: ${habit.color}`}">
+                    ${isCheckedToday ? '✓' : ''}
+                </div>
             </div>
         `;
         
@@ -176,56 +168,13 @@ function renderHabits() {
             toggleHabitDate(habit.id, date);
         });
         
-        // Empêcher les événements de la checkbox de déclencher l'appui long
-        ['mousedown', 'touchstart'].forEach(event => {
-            checkbox.addEventListener(event, (e) => {
-                e.stopPropagation();
-            });
-        });
-        
-        // Ajouter les événements pour l'appui long
-        setupLongPress(habitElement, habit.id);
-    });
-}
-
-function setupLongPress(element, habitId) {
-    let pressTimer;
-    const overlay = element.querySelector('.delete-confirm-overlay');
-    
-    const startPress = (e) => {
-        // Ignorer complètement si l'élément cliqué est la checkbox
-        if (e.target.closest('.day-checkbox')) return;
-        
-        isLongPressActive = false;
-        pressTimer = setTimeout(() => {
-            isLongPressActive = true;
-            currentHabitToDelete = habitId;
-            overlay.classList.add('visible');
-        }, 500); // Réduire le temps d'appui long pour une meilleure expérience
-    };
-    
-    const endPress = () => {
-        clearTimeout(pressTimer);
-        if (overlay.classList.contains('visible')) {
+        // Ajouter l'événement pour le bouton de suppression
+        const deleteButton = habitElement.querySelector('.delete-habit-btn');
+        deleteButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentHabitToDelete = habit.id;
             deleteConfirmModal.style.display = 'block';
-        }
-        overlay.classList.remove('visible');
-    };
-    
-    // Événements tactiles
-    element.addEventListener('touchstart', startPress, {passive: true});
-    element.addEventListener('touchend', endPress);
-    element.addEventListener('touchmove', () => {
-        clearTimeout(pressTimer);
-        overlay.classList.remove('visible');
-    });
-    
-    // Événements souris
-    element.addEventListener('mousedown', startPress);
-    element.addEventListener('mouseup', endPress);
-    element.addEventListener('mouseleave', () => {
-        clearTimeout(pressTimer);
-        overlay.classList.remove('visible');
+        });
     });
 }
 
