@@ -2,6 +2,8 @@
 let habits = JSON.parse(localStorage.getItem('habits')) || [];
 let currentDate = new Date();
 let calendarDate = new Date();
+let longPressTimer = null;
+let currentHabitToDelete = null;
 
 // Éléments DOM
 const habitsContainer = document.getElementById('habits-container');
@@ -13,16 +15,21 @@ const calendarElement = document.getElementById('calendar');
 const currentMonthElement = document.getElementById('current-month');
 const prevMonthButton = document.getElementById('prev-month');
 const nextMonthButton = document.getElementById('next-month');
+const habitEmojiInput = document.getElementById('habit-emoji');
 const habitNameInput = document.getElementById('habit-name');
 const habitColorInput = document.getElementById('habit-color');
 const habitDurationInput = document.getElementById('habit-duration');
 const saveHabitButton = document.getElementById('save-habit');
 const addHabitButton = document.getElementById('add-habit-btn');
 const addHabitModal = document.getElementById('add-habit-modal');
+const deleteConfirmModal = document.getElementById('delete-confirm-modal');
 const closeModal = document.querySelector('.close');
+const cancelDeleteButton = document.getElementById('cancel-delete');
+const confirmDeleteButton = document.getElementById('confirm-delete');
 const todayDateElement = document.getElementById('today-date');
 const calendarLegend = document.getElementById('calendar-legend');
 const navItems = document.querySelectorAll('.nav-item');
+const emojiSuggestions = document.querySelectorAll('.emoji-suggestion');
 
 // Fonctions de base
 function saveHabits() {
@@ -31,6 +38,7 @@ function saveHabits() {
 }
 
 function addHabit() {
+    const emoji = habitEmojiInput.value.trim();
     const name = habitNameInput.value.trim();
     const color = habitColorInput.value;
     const duration = parseInt(habitDurationInput.value);
@@ -47,10 +55,11 @@ function addHabit() {
     
     const habit = {
         id: Date.now(),
+        emoji: emoji || '✅',
         name,
         color,
         duration,
-        frequency: 'daily', // Toutes les activités sont quotidiennes maintenant
+        frequency: 'daily',
         completedDates: [],
         createdAt: new Date().toISOString()
     };
@@ -61,6 +70,7 @@ function addHabit() {
     renderCalendar();
     
     // Réinitialiser le formulaire et fermer la modale
+    habitEmojiInput.value = '';
     habitNameInput.value = '';
     habitColorInput.value = '#4caf50';
     habitDurationInput.value = '15';
@@ -93,12 +103,11 @@ function toggleHabitDate(habitId, date) {
 }
 
 function deleteHabit(habitId) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette activité ?')) {
-        habits = habits.filter(h => h.id !== habitId);
-        saveHabits();
-        renderHabits();
-        renderCalendar();
-    }
+    habits = habits.filter(h => h.id !== habitId);
+    saveHabits();
+    renderHabits();
+    renderCalendar();
+    deleteConfirmModal.style.display = 'none';
 }
 
 function renderHabits() {
@@ -123,6 +132,7 @@ function renderHabits() {
         const habitElement = document.createElement('div');
         habitElement.className = 'habit-card';
         habitElement.style.borderLeftColor = habit.color;
+        habitElement.dataset.id = habit.id;
         
         // Vérifier si l'activité est déjà cochée aujourd'hui
         const today = new Date();
@@ -130,22 +140,22 @@ function renderHabits() {
         const isCheckedToday = habit.completedDates.includes(today.toDateString());
         
         habitElement.innerHTML = `
-            <div class="habit-title">
-                <span>${habit.name}</span>
-                <button class="delete-btn" data-id="${habit.id}">×</button>
-            </div>
-            <div class="habit-meta">
-                <span class="habit-duration">${habit.duration} min</span>
-            </div>
-            <div class="habit-tracker">
-                <div class="day-box">
-                    <div class="day-label">Aujourd'hui</div>
-                    <div class="day-checkbox ${isCheckedToday ? 'checked' : ''}" 
-                         data-date="${today.toISOString()}"
-                         style="${isCheckedToday ? `background-color: ${habit.color}; border-color: ${habit.color}` : `border-color: ${habit.color}`}">
-                        ${isCheckedToday ? '✓' : ''}
+            <div class="habit-card-content">
+                <div class="habit-emoji">${habit.emoji}</div>
+                <div class="habit-info">
+                    <div class="habit-title">${habit.name}</div>
+                    <div class="habit-meta">
+                        <span class="habit-duration">${habit.duration} min</span>
                     </div>
                 </div>
+            </div>
+            <div class="day-checkbox ${isCheckedToday ? 'checked' : ''}" 
+                 data-date="${today.toISOString()}"
+                 style="${isCheckedToday ? `background-color: ${habit.color}; border-color: ${habit.color}` : `border-color: ${habit.color}`}">
+                ${isCheckedToday ? '✓' : ''}
+            </div>
+            <div class="delete-confirm-overlay">
+                <span class="delete-text">Relâchez pour supprimer</span>
             </div>
         `;
         
@@ -153,15 +163,53 @@ function renderHabits() {
         
         // Ajouter l'événement pour la case à cocher
         const checkbox = habitElement.querySelector('.day-checkbox');
-        checkbox.addEventListener('click', () => {
+        checkbox.addEventListener('click', (e) => {
+            e.stopPropagation();
             const date = new Date(checkbox.dataset.date);
             toggleHabitDate(habit.id, date);
         });
         
-        // Ajouter l'événement pour le bouton de suppression
-        habitElement.querySelector('.delete-btn').addEventListener('click', () => {
-            deleteHabit(habit.id);
-        });
+        // Ajouter les événements pour l'appui long
+        setupLongPress(habitElement, habit.id);
+    });
+}
+
+function setupLongPress(element, habitId) {
+    let pressTimer;
+    const overlay = element.querySelector('.delete-confirm-overlay');
+    
+    const startPress = (e) => {
+        // Empêcher le déclenchement du clic sur la checkbox
+        if (e.target.closest('.day-checkbox')) return;
+        
+        pressTimer = setTimeout(() => {
+            currentHabitToDelete = habitId;
+            overlay.classList.add('visible');
+        }, 1000);
+    };
+    
+    const endPress = () => {
+        clearTimeout(pressTimer);
+        if (overlay.classList.contains('visible')) {
+            deleteConfirmModal.style.display = 'block';
+        }
+        overlay.classList.remove('visible');
+    };
+    
+    // Événements tactiles
+    element.addEventListener('touchstart', startPress);
+    element.addEventListener('touchend', endPress);
+    element.addEventListener('touchmove', () => {
+        clearTimeout(pressTimer);
+        overlay.classList.remove('visible');
+    });
+    
+    // Événements souris
+    element.addEventListener('mousedown', startPress);
+    element.addEventListener('mouseup', endPress);
+    element.addEventListener('mouseleave', () => {
+        clearTimeout(pressTimer);
+        overlay.classList.remove('visible');
     });
 }
 
@@ -203,7 +251,7 @@ function renderCalendar() {
             <div class="day-number">${day}</div>
             <div class="day-habits">
                 ${completedHabits.map(habit => `
-                    <div class="day-habit-dot" style="background-color: ${habit.color}" title="${habit.name}"></div>
+                    <div class="day-habit-dot" style="background-color: ${habit.color}" title="${habit.emoji} ${habit.name}"></div>
                 `).join('')}
             </div>
         `;
@@ -225,7 +273,7 @@ function renderCalendarLegend() {
         legendItem.className = 'legend-item';
         legendItem.innerHTML = `
             <div class="legend-color" style="background-color: ${habit.color}"></div>
-            <span>${habit.name}</span>
+            <span>${habit.emoji} ${habit.name}</span>
         `;
         calendarLegend.appendChild(legendItem);
     });
@@ -238,7 +286,7 @@ function getCompletedHabitsForDate(date) {
 
 // Gestion du menu de navigation
 function toggleMenu(event) {
-    event.stopPropagation(); // Empêcher la propagation du clic
+    event.stopPropagation();
     navigationMenu.classList.toggle('open');
 }
 
@@ -247,20 +295,16 @@ function closeMenu() {
 }
 
 function switchView(viewId) {
-    // Masquer toutes les vues
     document.querySelectorAll('.view').forEach(view => {
         view.classList.remove('active');
     });
     
-    // Afficher la vue sélectionnée
     document.getElementById(viewId).classList.add('active');
     
-    // Si on passe à la vue calendrier, on le rend
     if (viewId === 'calendar-view') {
         renderCalendar();
     }
     
-    // Fermer le menu
     closeMenu();
 }
 
@@ -288,6 +332,13 @@ navItems.forEach(item => {
     });
 });
 
+// Suggestions d'emoji
+emojiSuggestions.forEach(suggestion => {
+    suggestion.addEventListener('click', () => {
+        habitEmojiInput.value = suggestion.getAttribute('data-emoji');
+    });
+});
+
 prevMonthButton.addEventListener('click', () => changeMonth(-1));
 nextMonthButton.addEventListener('click', () => changeMonth(1));
 saveHabitButton.addEventListener('click', addHabit);
@@ -297,11 +348,22 @@ addHabitButton.addEventListener('click', () => {
 closeModal.addEventListener('click', () => {
     addHabitModal.style.display = 'none';
 });
+cancelDeleteButton.addEventListener('click', () => {
+    deleteConfirmModal.style.display = 'none';
+});
+confirmDeleteButton.addEventListener('click', () => {
+    if (currentHabitToDelete) {
+        deleteHabit(currentHabitToDelete);
+    }
+});
 
-// Fermer la modale en cliquant en dehors
+// Fermer les modales en cliquant en dehors
 window.addEventListener('click', (event) => {
     if (event.target === addHabitModal) {
         addHabitModal.style.display = 'none';
+    }
+    if (event.target === deleteConfirmModal) {
+        deleteConfirmModal.style.display = 'none';
     }
 });
 
