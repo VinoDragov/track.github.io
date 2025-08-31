@@ -13,6 +13,8 @@ const currentMonthElement = document.getElementById('current-month');
 const prevMonthButton = document.getElementById('prev-month');
 const nextMonthButton = document.getElementById('next-month');
 const habitNameInput = document.getElementById('habit-name');
+const habitColorInput = document.getElementById('habit-color');
+const habitDurationInput = document.getElementById('habit-duration');
 const habitFrequencySelect = document.getElementById('habit-frequency');
 const habitCategoryInput = document.getElementById('habit-category');
 const saveHabitButton = document.getElementById('save-habit');
@@ -23,15 +25,19 @@ const totalHabitsElement = document.getElementById('total-habits');
 const completionRateElement = document.getElementById('completion-rate');
 const currentStreakElement = document.getElementById('current-streak');
 const longestStreakElement = document.getElementById('longest-streak');
+const calendarLegend = document.getElementById('calendar-legend');
 
 // Fonctions de base
 function saveHabits() {
     localStorage.setItem('habits', JSON.stringify(habits));
     updateStats();
+    renderCalendarLegend();
 }
 
 function addHabit() {
     const name = habitNameInput.value.trim();
+    const color = habitColorInput.value;
+    const duration = parseInt(habitDurationInput.value);
     const frequency = habitFrequencySelect.value;
     const category = habitCategoryInput.value.trim();
     
@@ -40,9 +46,16 @@ function addHabit() {
         return;
     }
     
+    if (duration < 1) {
+        alert('La durée doit être d\'au moins 1 minute');
+        return;
+    }
+    
     const habit = {
         id: Date.now(),
         name,
+        color,
+        duration,
         frequency,
         category: category || 'Général',
         completedDates: [],
@@ -56,6 +69,8 @@ function addHabit() {
     
     // Réinitialiser le formulaire et fermer la modale
     habitNameInput.value = '';
+    habitColorInput.value = '#4caf50';
+    habitDurationInput.value = '15';
     habitCategoryInput.value = '';
     addHabitModal.style.display = 'none';
 }
@@ -103,6 +118,7 @@ function renderHabits() {
     habits.forEach(habit => {
         const habitElement = document.createElement('div');
         habitElement.className = 'habit-card';
+        habitElement.style.borderLeftColor = habit.color;
         
         // Générer les 7 derniers jours pour le suivi
         const days = [];
@@ -118,7 +134,8 @@ function renderHabits() {
                 <div class="day-box">
                     <div class="day-label">${date.getDate()}/${date.getMonth() + 1}</div>
                     <div class="day-checkbox ${isChecked ? 'checked' : ''}" 
-                         data-date="${date.toISOString()}">
+                         data-date="${date.toISOString()}"
+                         style="${isChecked ? `background-color: ${habit.color}; border-color: ${habit.color}` : ''}">
                         ${isChecked ? '✓' : ''}
                     </div>
                 </div>
@@ -135,6 +152,7 @@ function renderHabits() {
             </div>
             <div class="habit-meta">
                 <span>${habit.category}</span>
+                <span class="habit-duration">${habit.duration} min</span>
                 <span>${getFrequencyText(habit.frequency)}</span>
             </div>
             <div class="streak-info">
@@ -191,38 +209,45 @@ function renderCalendar() {
         // Vérifier si c'est aujourd'hui
         const isToday = currentDay.toDateString() === today.toDateString();
         
-        // Calculer le statut pour ce jour
-        const dayStatus = getDayStatus(currentDay);
+        // Obtenir les activités complétées ce jour
+        const completedHabits = getCompletedHabitsForDate(currentDay);
         
         dayElement.className = `calendar-day ${isToday ? 'today' : ''}`;
         dayElement.innerHTML = `
             <div class="day-number">${day}</div>
-            <div class="day-status ${dayStatus}"></div>
+            <div class="day-habits">
+                ${completedHabits.map(habit => `
+                    <div class="day-habit-dot" style="background-color: ${habit.color}" title="${habit.name}"></div>
+                `).join('')}
+            </div>
         `;
         
         calendarElement.appendChild(dayElement);
     }
 }
 
-function getDayStatus(date) {
-    if (habits.length === 0) return '';
+function renderCalendarLegend() {
+    calendarLegend.innerHTML = '';
     
-    const dateStr = date.toDateString();
-    let completedCount = 0;
+    if (habits.length === 0) {
+        calendarLegend.innerHTML = '<p>Aucune activité à afficher</p>';
+        return;
+    }
     
     habits.forEach(habit => {
-        if (habit.completedDates.includes(dateStr)) {
-            completedCount++;
-        }
+        const legendItem = document.createElement('div');
+        legendItem.className = 'legend-item';
+        legendItem.innerHTML = `
+            <div class="legend-color" style="background-color: ${habit.color}"></div>
+            <span>${habit.name}</span>
+        `;
+        calendarLegend.appendChild(legendItem);
     });
-    
-    if (completedCount === habits.length) {
-        return 'completed';
-    } else if (completedCount > 0) {
-        return 'partial';
-    } else {
-        return 'missed';
-    }
+}
+
+function getCompletedHabitsForDate(date) {
+    const dateStr = date.toDateString();
+    return habits.filter(habit => habit.completedDates.includes(dateStr));
 }
 
 function calculateStreaks(habit) {
@@ -369,3 +394,4 @@ window.addEventListener('click', (event) => {
 // Initialisation
 renderHabits();
 updateStats();
+renderCalendarLegend();
