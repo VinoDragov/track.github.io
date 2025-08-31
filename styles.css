@@ -5,6 +5,7 @@
     --card-color: #ffffff;
     --text-color: #333333;
     --disabled-color: #cccccc;
+    --delete-color: #f44336;
 }
 
 * {
@@ -127,67 +128,69 @@ h1 {
 
 .habit-card {
     background-color: var(--card-color);
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 1rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     position: relative;
     border-left: 4px solid #4caf50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.habit-card:active {
+    transform: scale(0.98);
+}
+
+.habit-card-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.habit-emoji {
+    font-size: 1.8rem;
+    margin-right: 0.8rem;
+}
+
+.habit-info {
+    flex: 1;
 }
 
 .habit-title {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
     display: flex;
-    justify-content: space-between;
     align-items: center;
 }
 
 .habit-meta {
     display: flex;
-    justify-content: space-between;
     color: #666;
     font-size: 0.9rem;
-    margin-bottom: 1rem;
 }
 
 .habit-duration {
     background-color: #e3f2fd;
-    padding: 0.3rem 0.6rem;
-    border-radius: 12px;
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
     font-size: 0.8rem;
     color: var(--primary-color);
-}
-
-.habit-tracker {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1rem;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-}
-
-.day-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex-shrink: 0;
-    margin: 0 0.2rem;
-}
-
-.day-label {
-    font-size: 0.7rem;
-    margin-bottom: 0.3rem;
+    margin-right: 0.5rem;
 }
 
 .day-checkbox {
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
     border: 2px solid var(--primary-color);
-    border-radius: 4px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
 }
 
 .day-checkbox.checked {
@@ -195,23 +198,28 @@ h1 {
     color: white;
 }
 
-.day-checkbox.future {
-    border-color: var(--disabled-color);
-    cursor: not-allowed;
-    opacity: 0.6;
+.delete-confirm-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(244, 67, 54, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
-.delete-btn {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    background: none;
-    border: none;
-    color: #f44336;
-    font-size: 1.2rem;
-    width: auto;
-    padding: 0.2rem;
-    cursor: pointer;
+.delete-confirm-overlay.visible {
+    opacity: 1;
+}
+
+.delete-text {
+    color: var(--delete-color);
+    font-weight: bold;
 }
 
 /* Styles pour le calendrier */
@@ -345,7 +353,7 @@ h1 {
     background-color: var(--card-color);
     margin: 10% auto;
     padding: 1.5rem;
-    border-radius: 8px;
+    border-radius: 12px;
     width: 90%;
     max-width: 500px;
     position: relative;
@@ -365,7 +373,7 @@ h1 {
 }
 
 .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 1.2rem;
 }
 
 label {
@@ -378,7 +386,7 @@ input, select {
     width: 100%;
     padding: 0.8rem;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 8px;
     font-size: 1rem;
 }
 
@@ -387,12 +395,47 @@ input[type="color"] {
     padding: 0.2rem;
 }
 
+.emoji-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.emoji-suggestion {
+    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.emoji-suggestion:hover {
+    background-color: #e0e0e0;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.secondary-btn {
+    background-color: #f0f0f0;
+    color: var(--text-color);
+}
+
+.secondary-btn:hover {
+    background-color: #e0e0e0;
+}
+
 button {
     background-color: var(--primary-color);
     color: white;
     border: none;
     padding: 0.8rem 1.5rem;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 1rem;
     width: 100%;
@@ -409,12 +452,15 @@ button:hover {
         margin: 0 auto;
     }
     
-    .habit-tracker {
-        justify-content: flex-start;
-        gap: 0.5rem;
-    }
-    
     .calendar {
         gap: 8px;
+    }
+    
+    .modal-buttons {
+        justify-content: flex-end;
+    }
+    
+    .modal-buttons button {
+        width: auto;
     }
 }
