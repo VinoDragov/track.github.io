@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi d'Habitudes</title>
-    <meta name="theme-color" content="#4caf50">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✅</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✅</text></svg>">
+    <title>Suivi d'évolution</title>
+    <meta name="theme-color" content="#2196F3">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📈</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📈</text></svg>">
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
     <header>
-        <h1>Suivi d'Habitudes</h1>
+        <h1>Suivi d'évolution</h1>
         <button id="view-toggle" class="view-toggle">Calendrier</button>
     </header>
 
     <div class="container">
-        <!-- Section Habitudes (vue par défaut) -->
+        <!-- Section Activités (vue par défaut) -->
         <div id="habits-view" class="view active">
             <div class="habits-list" id="habits-container">
-                <!-- Les habitudes seront ajoutées ici dynamiquement -->
+                <!-- Les activités seront ajoutées ici dynamiquement -->
             </div>
         </div>
 
@@ -37,7 +37,7 @@
             <div class="calendar-legend">
                 <div class="legend-item">
                     <div class="color-box completed"></div>
-                    <span>Complétée</span>
+                    <span>Réalisée</span>
                 </div>
                 <div class="legend-item">
                     <div class="color-box partial"></div>
@@ -45,18 +45,18 @@
                 </div>
                 <div class="legend-item">
                     <div class="color-box missed"></div>
-                    <span>Manquée</span>
+                    <span>Non réalisée</span>
                 </div>
             </div>
         </div>
 
         <!-- Section Statistiques -->
         <div class="stats">
-            <h2>Statistiques</h2>
+            <h2>Progrès</h2>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-value" id="total-habits">0</div>
-                    <div class="stat-label">Habitudes</div>
+                    <div class="stat-label">Activités</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="completion-rate">0%</div>
@@ -74,16 +74,16 @@
         </div>
     </div>
 
-    <!-- Bouton flottant pour ajouter une habitude -->
+    <!-- Bouton flottant pour ajouter une activité -->
     <button id="add-habit-btn" class="floating-btn">+</button>
 
-    <!-- Modal pour ajouter une habitude -->
+    <!-- Modal pour ajouter une activité -->
     <div id="add-habit-modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>Nouvelle Habitude</h2>
+            <h2>Nouvelle Activité</h2>
             <div class="form-group">
-                <label for="habit-name">Nom de l'habitude</label>
+                <label for="habit-name">Nom de l'activité</label>
                 <input type="text" id="habit-name" placeholder="Ex: Méditation, Sport, Lecture...">
             </div>
             <div class="form-group">
@@ -98,7 +98,7 @@
                 <label for="habit-category">Catégorie (optionnel)</label>
                 <input type="text" id="habit-category" placeholder="Ex: Santé, Travail, Loisir...">
             </div>
-            <button id="save-habit">Ajouter l'habitude</button>
+            <button id="save-habit">Ajouter l'activité</button>
         </div>
     </div>
 
