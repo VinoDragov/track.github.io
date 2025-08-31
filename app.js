@@ -1,18 +1,30 @@
 // Gestion des données
 let habits = JSON.parse(localStorage.getItem('habits')) || [];
+let currentDate = new Date();
+let calendarDate = new Date();
 
 // Éléments DOM
 const habitsContainer = document.getElementById('habits-container');
+const habitsView = document.getElementById('habits-view');
+const calendarView = document.getElementById('calendar-view');
+const viewToggle = document.getElementById('view-toggle');
+const calendarElement = document.getElementById('calendar');
+const currentMonthElement = document.getElementById('current-month');
+const prevMonthButton = document.getElementById('prev-month');
+const nextMonthButton = document.getElementById('next-month');
 const habitNameInput = document.getElementById('habit-name');
 const habitFrequencySelect = document.getElementById('habit-frequency');
-const addHabitButton = document.getElementById('add-habit');
+const habitCategoryInput = document.getElementById('habit-category');
+const saveHabitButton = document.getElementById('save-habit');
+const addHabitButton = document.getElementById('add-habit-btn');
+const addHabitModal = document.getElementById('add-habit-modal');
+const closeModal = document.querySelector('.close');
 const totalHabitsElement = document.getElementById('total-habits');
 const completionRateElement = document.getElementById('completion-rate');
 const currentStreakElement = document.getElementById('current-streak');
 const longestStreakElement = document.getElementById('longest-streak');
-const installButton = document.getElementById('install-btn');
 
-// Fonctions
+// Fonctions de base
 function saveHabits() {
     localStorage.setItem('habits', JSON.stringify(habits));
     updateStats();
@@ -21,6 +33,7 @@ function saveHabits() {
 function addHabit() {
     const name = habitNameInput.value.trim();
     const frequency = habitFrequencySelect.value;
+    const category = habitCategoryInput.value.trim();
     
     if (!name) {
         alert('Veuillez entrer un nom pour votre habitude');
@@ -31,6 +44,7 @@ function addHabit() {
         id: Date.now(),
         name,
         frequency,
+        category: category || 'Général',
         completedDates: [],
         createdAt: new Date().toISOString()
     };
@@ -38,9 +52,12 @@ function addHabit() {
     habits.push(habit);
     saveHabits();
     renderHabits();
+    renderCalendar();
     
-    // Réinitialiser le formulaire
+    // Réinitialiser le formulaire et fermer la modale
     habitNameInput.value = '';
+    habitCategoryInput.value = '';
+    addHabitModal.style.display = 'none';
 }
 
 function toggleHabitDate(habitId, date) {
@@ -58,6 +75,7 @@ function toggleHabitDate(habitId, date) {
     
     saveHabits();
     renderHabits();
+    renderCalendar();
 }
 
 function deleteHabit(habitId) {
@@ -65,6 +83,7 @@ function deleteHabit(habitId) {
         habits = habits.filter(h => h.id !== habitId);
         saveHabits();
         renderHabits();
+        renderCalendar();
     }
 }
 
@@ -75,7 +94,7 @@ function renderHabits() {
         habitsContainer.innerHTML = `
             <div class="empty-state">
                 <p>Vous n'avez aucune habitude enregistrée.</p>
-                <p>Ajoutez votre première habitude pour commencer à tracker !</p>
+                <p>Appuyez sur le bouton "+" pour ajouter votre première habitude !</p>
             </div>
         `;
         return;
@@ -114,7 +133,10 @@ function renderHabits() {
                 <span>${habit.name}</span>
                 <button class="delete-btn" data-id="${habit.id}">×</button>
             </div>
-            <div class="habit-frequency">${getFrequencyText(habit.frequency)}</div>
+            <div class="habit-meta">
+                <span>${habit.category}</span>
+                <span>${getFrequencyText(habit.frequency)}</span>
+            </div>
             <div class="streak-info">
                 <span>Série actuelle: ${currentStreak} jours</span>
                 <span>Record: ${longestStreak} jours</span>
@@ -137,6 +159,70 @@ function renderHabits() {
             deleteHabit(habit.id);
         });
     });
+}
+
+function renderCalendar() {
+    calendarElement.innerHTML = '';
+    
+    // Mettre à jour le titre du mois
+    const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                       'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    currentMonthElement.textContent = `${monthNames[calendarDate.getMonth()]} ${calendarDate.getFullYear()}`;
+    
+    // Obtenir le premier jour du mois et le nombre de jours
+    const firstDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
+    const lastDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    
+    // Ajouter les cases vides pour les jours avant le premier du mois
+    for (let i = 0; i < firstDay.getDay(); i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'calendar-day empty';
+        calendarElement.appendChild(emptyDay);
+    }
+    
+    // Ajouter les jours du mois
+    const today = new Date();
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement('div');
+        const currentDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day);
+        
+        // Vérifier si c'est aujourd'hui
+        const isToday = currentDay.toDateString() === today.toDateString();
+        
+        // Calculer le statut pour ce jour
+        const dayStatus = getDayStatus(currentDay);
+        
+        dayElement.className = `calendar-day ${isToday ? 'today' : ''}`;
+        dayElement.innerHTML = `
+            <div class="day-number">${day}</div>
+            <div class="day-status ${dayStatus}"></div>
+        `;
+        
+        calendarElement.appendChild(dayElement);
+    }
+}
+
+function getDayStatus(date) {
+    if (habits.length === 0) return '';
+    
+    const dateStr = date.toDateString();
+    let completedCount = 0;
+    
+    habits.forEach(habit => {
+        if (habit.completedDates.includes(dateStr)) {
+            completedCount++;
+        }
+    });
+    
+    if (completedCount === habits.length) {
+        return 'completed';
+    } else if (completedCount > 0) {
+        return 'partial';
+    } else {
+        return 'missed';
+    }
 }
 
 function calculateStreaks(habit) {
@@ -195,9 +281,9 @@ function calculateStreaks(habit) {
 
 function getFrequencyText(frequency) {
     switch(frequency) {
-        case 'daily': return 'À faire tous les jours';
-        case 'weekly': return 'À faire chaque semaine';
-        case 'monthly': return 'À faire chaque mois';
+        case 'daily': return 'Quotidienne';
+        case 'weekly': return 'Hebdomadaire';
+        case 'monthly': return 'Mensuelle';
         default: return frequency;
     }
 }
@@ -218,8 +304,6 @@ function updateStats() {
     let totalCompleted = 0;
     
     habits.forEach(habit => {
-        // Pour chaque habitude, vérifier si elle aurait dû être faite aujourd'hui
-        // Pour simplifier, nous considérons qu'une habitude doit être faite tous les jours
         totalPossible++;
         if (habit.completedDates.includes(today)) {
             totalCompleted++;
@@ -243,41 +327,44 @@ function updateStats() {
     longestStreakElement.textContent = globalLongestStreak;
 }
 
-// Gestion de la PWA
-let deferredPrompt;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    installButton.style.display = 'block';
-});
-
-installButton.addEventListener('click', async () => {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-            installButton.style.display = 'none';
-        }
-        deferredPrompt = null;
+// Gestion des vues (habitudes vs calendrier)
+function toggleView() {
+    if (habitsView.classList.contains('active')) {
+        habitsView.classList.remove('active');
+        calendarView.classList.add('active');
+        viewToggle.textContent = 'Habitudes';
+        renderCalendar();
+    } else {
+        calendarView.classList.remove('active');
+        habitsView.classList.add('active');
+        viewToggle.textContent = 'Calendrier';
     }
-});
+}
 
-// Service Worker pour la PWA
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-            .then(registration => {
-                console.log('SW enregistré: ', registration);
-            })
-            .catch(registrationError => {
-                console.log('Échec enregistrement SW: ', registrationError);
-            });
-    });
+// Navigation dans le calendrier
+function changeMonth(direction) {
+    calendarDate.setMonth(calendarDate.getMonth() + direction);
+    renderCalendar();
 }
 
 // Événements
-addHabitButton.addEventListener('click', addHabit);
+viewToggle.addEventListener('click', toggleView);
+prevMonthButton.addEventListener('click', () => changeMonth(-1));
+nextMonthButton.addEventListener('click', () => changeMonth(1));
+saveHabitButton.addEventListener('click', addHabit);
+addHabitButton.addEventListener('click', () => {
+    addHabitModal.style.display = 'block';
+});
+closeModal.addEventListener('click', () => {
+    addHabitModal.style.display = 'none';
+});
+
+// Fermer la modale en cliquant en dehors
+window.addEventListener('click', (event) => {
+    if (event.target === addHabitModal) {
+        addHabitModal.style.display = 'none';
+    }
+});
 
 // Initialisation
 renderHabits();
