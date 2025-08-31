@@ -16,8 +16,6 @@ const nextMonthButton = document.getElementById('next-month');
 const habitNameInput = document.getElementById('habit-name');
 const habitColorInput = document.getElementById('habit-color');
 const habitDurationInput = document.getElementById('habit-duration');
-const habitFrequencySelect = document.getElementById('habit-frequency');
-const habitCategoryInput = document.getElementById('habit-category');
 const saveHabitButton = document.getElementById('save-habit');
 const addHabitButton = document.getElementById('add-habit-btn');
 const addHabitModal = document.getElementById('add-habit-modal');
@@ -36,8 +34,6 @@ function addHabit() {
     const name = habitNameInput.value.trim();
     const color = habitColorInput.value;
     const duration = parseInt(habitDurationInput.value);
-    const frequency = habitFrequencySelect.value;
-    const category = habitCategoryInput.value.trim();
     
     if (!name) {
         alert('Veuillez entrer un nom pour votre activité');
@@ -54,8 +50,7 @@ function addHabit() {
         name,
         color,
         duration,
-        frequency,
-        category: category || 'Général',
+        frequency: 'daily', // Toutes les activités sont quotidiennes maintenant
         completedDates: [],
         createdAt: new Date().toISOString()
     };
@@ -69,7 +64,6 @@ function addHabit() {
     habitNameInput.value = '';
     habitColorInput.value = '#4caf50';
     habitDurationInput.value = '15';
-    habitCategoryInput.value = '';
     addHabitModal.style.display = 'none';
 }
 
@@ -141,9 +135,7 @@ function renderHabits() {
                 <button class="delete-btn" data-id="${habit.id}">×</button>
             </div>
             <div class="habit-meta">
-                <span>${habit.category}</span>
                 <span class="habit-duration">${habit.duration} min</span>
-                <span>${getFrequencyText(habit.frequency)}</span>
             </div>
             <div class="habit-tracker">
                 <div class="day-box">
@@ -242,15 +234,6 @@ function renderCalendarLegend() {
 function getCompletedHabitsForDate(date) {
     const dateStr = date.toDateString();
     return habits.filter(habit => habit.completedDates.includes(dateStr));
-}
-
-function getFrequencyText(frequency) {
-    switch(frequency) {
-        case 'daily': return 'Quotidienne';
-        case 'weekly': return 'Hebdomadaire';
-        case 'monthly': return 'Mensuelle';
-        default: return frequency;
-    }
 }
 
 // Gestion du menu de navigation
