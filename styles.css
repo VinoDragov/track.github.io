@@ -63,6 +63,16 @@ h1 {
     display: block;
 }
 
+.current-date {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.current-date h2 {
+    color: var(--primary-color);
+    font-weight: normal;
+}
+
 .habits-list {
     display: grid;
     grid-gap: 1rem;
@@ -137,6 +147,12 @@ h1 {
 .day-checkbox.checked {
     background-color: var(--primary-color);
     color: white;
+}
+
+.day-checkbox.future {
+    border-color: var(--disabled-color);
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .delete-btn {
@@ -239,44 +255,6 @@ h1 {
     width: 16px;
     height: 16px;
     border-radius: 4px;
-}
-
-/* Styles pour les statistiques */
-.stats {
-    background-color: var(--card-color);
-    padding: 1rem;
-    border-radius: 8px;
-    margin-top: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.stats h2 {
-    margin-bottom: 1rem;
-    text-align: center;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-}
-
-.stat-card {
-    text-align: center;
-    padding: 1rem;
-    border-radius: 8px;
-    background-color: #e3f2fd;
-}
-
-.stat-value {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--primary-color);
-}
-
-.stat-label {
-    font-size: 0.9rem;
-    color: #666;
 }
 
 .empty-state {
@@ -388,10 +366,6 @@ button:hover {
     .habit-tracker {
         justify-content: flex-start;
         gap: 0.5rem;
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(4, 1fr);
     }
     
     .calendar {
