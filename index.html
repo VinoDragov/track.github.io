@@ -9,14 +9,15 @@
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📈</text></svg>">
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.webmanifest">
-
-        <!-- Firebase App (core SDK) -->
+    
+    <!-- Firebase App (core SDK) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <!-- Firebase Firestore -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <!-- Firebase Auth -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
+    <!-- Chart.js pour les graphiques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header>
@@ -26,6 +27,7 @@
             <div id="navigation-menu" class="navigation-menu">
                 <button class="nav-item" data-view="habits-view">📋 Activités</button>
                 <button class="nav-item" data-view="calendar-view">📅 Calendrier</button>
+                <button class="nav-item" data-view="progress-view">📊 Progrès</button>
             </div>
         </div>
     </header>
@@ -53,6 +55,25 @@
             </div>
             <div class="calendar-legend" id="calendar-legend">
                 <!-- La légende sera générée ici dynamiquement -->
+            </div>
+        </div>
+
+        <!-- Nouvelle Section Progrès -->
+        <div id="progress-view" class="view">
+            <div class="current-date">
+                <h2>Mes Progrès</h2>
+            </div>
+            <div class="time-filters">
+                <button class="time-filter-btn active" data-days="7">7 jours</button>
+                <button class="time-filter-btn" data-days="30">30 jours</button>
+                <button class="time-filter-btn" data-days="90">90 jours</button>
+                <button class="time-filter-btn" data-days="365">Tout</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="progress-chart"></canvas>
+            </div>
+            <div class="stats-summary" id="stats-summary">
+                <!-- Le résumé des statistiques sera ajouté ici dynamiquement -->
             </div>
         </div>
     </div>
@@ -104,6 +125,7 @@
         </div>
     </div>
 
+    <script src="firebase.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
