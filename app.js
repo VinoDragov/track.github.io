@@ -5,11 +5,14 @@ let calendarDate = new Date();
 let currentHabitToDelete = null;
 let currentUser = null;
 let habitsListener = null;
+let progressChart = null;
+let selectedTimeFilter = 7; // Filtre par défaut: 7 jours
 
 // Éléments DOM
 const habitsContainer = document.getElementById('habits-container');
 const habitsView = document.getElementById('habits-view');
 const calendarView = document.getElementById('calendar-view');
+const progressView = document.getElementById('progress-view');
 const menuButton = document.getElementById('menu-button');
 const navigationMenu = document.getElementById('navigation-menu');
 const calendarElement = document.getElementById('calendar');
@@ -49,6 +52,11 @@ async function initApp() {
             renderHabits();
             renderCalendar();
             renderCalendarLegend();
+            
+            // Mettre à jour le graphique si on est sur la vue progrès
+            if (progressView.classList.contains('active')) {
+                renderProgressChart();
+            }
         });
     } catch (error) {
         console.error("Erreur lors de l'initialisation:", error);
@@ -56,6 +64,11 @@ async function initApp() {
         habits = JSON.parse(localStorage.getItem('habits')) || [];
         renderHabits();
         renderCalendarLegend();
+        
+        // Initialiser le graphique si on est sur la vue progrès
+        if (progressView.classList.contains('active')) {
+            renderProgressChart();
+        }
     }
 }
 
@@ -157,6 +170,11 @@ async function toggleHabitDate(habitId, date) {
     
     renderHabits();
     renderCalendar();
+    
+    // Mettre à jour le graphique si on est sur la vue progrès
+    if (progressView.classList.contains('active')) {
+        renderProgressChart();
+    }
 }
 
 async function deleteHabit(habitId) {
@@ -172,6 +190,11 @@ async function deleteHabit(habitId) {
     deleteConfirmModal.style.display = 'none';
     renderHabits();
     renderCalendar();
+    
+    // Mettre à jour le graphique si on est sur la vue progrès
+    if (progressView.classList.contains('active')) {
+        renderProgressChart();
+    }
 }
 
 function renderHabits() {
@@ -241,6 +264,128 @@ function renderHabits() {
             deleteConfirmModal.style.display = 'block';
         });
     });
+}
+
+function calculateHabitStats(days = 7) {
+    const now = new Date();
+    const startDate = new Date(now);
+    startDate.setDate(now.getDate() - days);
+    
+    const stats = [];
+    let totalTime = 0;
+    
+    habits.forEach(habit => {
+        // Compter le nombre de fois où l'habitude a été complétée dans la période
+        const completedInPeriod = habit.completedDates.filter(dateStr => {
+            const date = new Date(dateStr);
+            return date >= startDate && date <= now;
+        }).length;
+        
+        // Calculer le temps total pour cette habitude
+        const habitTotalTime = completedInPeriod * habit.duration;
+        
+        if (completedInPeriod > 0) {
+            stats.push({
+                name: habit.name,
+                emoji: habit.emoji,
+                color: habit.color,
+                count: completedInPeriod,
+                totalTime: habitTotalTime
+            });
+            
+            totalTime += habitTotalTime;
+        }
+    });
+    
+    // Trier par temps total décroissant
+    stats.sort((a, b) => b.totalTime - a.totalTime);
+    
+    return { stats, totalTime };
+}
+
+function renderProgressChart() {
+    const ctx = document.getElementById('progress-chart');
+    
+    if (!ctx) return;
+    
+    // Détruire le graphique existant s'il y en a un
+    if (progressChart) {
+        progressChart.destroy();
+    }
+    
+    const { stats, totalTime } = calculateHabitStats(selectedTimeFilter);
+    
+    if (stats.length === 0) {
+        document.getElementById('stats-summary').innerHTML = `
+            <div class="empty-state">
+                <p>Aucune donnée à afficher pour cette période.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Préparer les données pour le graphique
+    const labels = stats.map(stat => `${stat.emoji} ${stat.name}`);
+    const data = stats.map(stat => stat.totalTime);
+    const backgroundColors = stats.map(stat => stat.color);
+    
+    // Créer le graphique camembert
+    progressChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: backgroundColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 15,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.raw;
+                            const percentage = Math.round((value / totalTime) * 100);
+                            return `${context.label}: ${value} min (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Afficher le résumé des statistiques
+    let summaryHTML = '';
+    stats.forEach(stat => {
+        const percentage = Math.round((stat.totalTime / totalTime) * 100);
+        summaryHTML += `
+            <div class="stat-item">
+                <div class="stat-label">
+                    <div class="stat-color" style="background-color: ${stat.color}"></div>
+                    <span>${stat.emoji} ${stat.name}</span>
+                </div>
+                <div class="stat-value">${stat.totalTime} min (${percentage}%)</div>
+            </div>
+        `;
+    });
+    
+    summaryHTML += `
+        <div class="total-time">
+            Temps total: ${totalTime} minutes
+        </div>
+    `;
+    
+    document.getElementById('stats-summary').innerHTML = summaryHTML;
 }
 
 function renderCalendar() {
@@ -333,6 +478,8 @@ function switchView(viewId) {
     
     if (viewId === 'calendar-view') {
         renderCalendar();
+    } else if (viewId === 'progress-view') {
+        renderProgressChart();
     }
     
     closeMenu();
@@ -394,6 +541,26 @@ window.addEventListener('click', (event) => {
     }
     if (event.target === deleteConfirmModal) {
         deleteConfirmModal.style.display = 'none';
+    }
+});
+
+// Gestion des filtres de temps pour la vue progrès
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion des filtres de temps
+    document.querySelectorAll('.time-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.time-filter-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+            this.classList.add('active');
+            selectedTimeFilter = parseInt(this.getAttribute('data-days'));
+            renderProgressChart();
+        });
+    });
+    
+    // Initialiser le graphique si on est déjà sur la vue progrès
+    if (progressView.classList.contains('active')) {
+        renderProgressChart();
     }
 });
 
