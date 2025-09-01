@@ -32,17 +32,6 @@ const todayDateElement = document.getElementById('today-date');
 const calendarLegend = document.getElementById('calendar-legend');
 const navItems = document.querySelectorAll('.nav-item');
 const emojiSuggestions = document.querySelectorAll('.emoji-suggestion');
-const exportButton = document.getElementById('export-data');
-const importButton = document.getElementById('import-data');
-const dataModal = document.getElementById('data-modal');
-const exportSection = document.getElementById('export-section');
-const importSection = document.getElementById('import-section');
-const exportDataText = document.getElementById('export-data-text');
-const importDataText = document.getElementById('import-data-text');
-const copyDataButton = document.getElementById('copy-data');
-const confirmImportButton = document.getElementById('confirm-import');
-const cancelImportButton = document.getElementById('cancel-import');
-const dataModalTitle = document.getElementById('data-modal-title');
 
 // Initialisation de l'application
 function initApp() {
@@ -451,64 +440,6 @@ function changeMonth(direction) {
     renderCalendar();
 }
 
-// Fonctions d'import/export
-function exportData() {
-    const data = {
-        habits: habits,
-        exportedAt: new Date().toISOString()
-    };
-    
-    const jsonData = JSON.stringify(data, null, 2);
-    exportDataText.value = jsonData;
-    
-    dataModalTitle.textContent = "Exporter les données";
-    exportSection.style.display = 'block';
-    importSection.style.display = 'none';
-    dataModal.style.display = 'block';
-}
-
-function importData() {
-    dataModalTitle.textContent = "Importer les données";
-    exportSection.style.display = 'none';
-    importSection.style.display = 'block';
-    importDataText.value = '';
-    dataModal.style.display = 'block';
-}
-
-function copyToClipboard() {
-    exportDataText.select();
-    document.execCommand('copy');
-    alert('Données copiées dans le presse-papier !');
-}
-
-function confirmImport() {
-    try {
-        const data = JSON.parse(importDataText.value);
-        
-        if (!data.habits || !Array.isArray(data.habits)) {
-            throw new Error("Format de données invalide");
-        }
-        
-        // Demander confirmation avant d'importer
-        if (confirm("L'importation écrasera toutes vos données actuelles. Êtes-vous sûr de vouloir continuer ?")) {
-            habits = data.habits;
-            saveHabits();
-            renderHabits();
-            renderCalendar();
-            renderCalendarLegend();
-            
-            if (progressView.classList.contains('active')) {
-                renderProgressChart();
-            }
-            
-            alert('Données importées avec succès !');
-            dataModal.style.display = 'none';
-        }
-    } catch (error) {
-        alert('Erreur lors de l\'importation: ' + error.message);
-    }
-}
-
 // Événements
 menuButton.addEventListener('click', toggleMenu);
 
@@ -521,12 +452,10 @@ document.addEventListener('click', (event) => {
 
 // Navigation entre les vues
 navItems.forEach(item => {
-    if (item.id !== 'export-data' && item.id !== 'import-data') {
-        item.addEventListener('click', () => {
-            const viewId = item.getAttribute('data-view');
-            switchView(viewId);
-        });
-    }
+    item.addEventListener('click', () => {
+        const viewId = item.getAttribute('data-view');
+        switchView(viewId);
+    });
 });
 
 // Suggestions d'emoji
@@ -586,15 +515,6 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedTimeFilter = parseInt(this.getAttribute('data-days'));
             renderProgressChart();
         });
-    });
-    
-    // Boutons d'import/export
-    exportButton.addEventListener('click', exportData);
-    importButton.addEventListener('click', importData);
-    copyDataButton.addEventListener('click', copyToClipboard);
-    confirmImportButton.addEventListener('click', confirmImport);
-    cancelImportButton.addEventListener('click', () => {
-        dataModal.style.display = 'none';
     });
     
     // Initialiser le graphique si on est déjà sur la vue progrès
