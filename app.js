@@ -3,10 +3,8 @@ let habits = [];
 let currentDate = new Date();
 let calendarDate = new Date();
 let currentHabitToDelete = null;
-let currentUser = null;
-let habitsListener = null;
-let progressChart = null;
 let selectedTimeFilter = 7; // Filtre par défaut: 7 jours
+let progressChart = null;
 
 // Éléments DOM
 const habitsContainer = document.getElementById('habits-container');
@@ -27,66 +25,54 @@ const saveHabitButton = document.getElementById('save-habit');
 const addHabitButton = document.getElementById('add-habit-btn');
 const addHabitModal = document.getElementById('add-habit-modal');
 const deleteConfirmModal = document.getElementById('delete-confirm-modal');
-const closeModal = document.querySelector('.close');
+const closeModal = document.querySelectorAll('.close');
 const cancelDeleteButton = document.getElementById('cancel-delete');
 const confirmDeleteButton = document.getElementById('confirm-delete');
 const todayDateElement = document.getElementById('today-date');
 const calendarLegend = document.getElementById('calendar-legend');
 const navItems = document.querySelectorAll('.nav-item');
 const emojiSuggestions = document.querySelectorAll('.emoji-suggestion');
+const exportButton = document.getElementById('export-data');
+const importButton = document.getElementById('import-data');
+const dataModal = document.getElementById('data-modal');
+const exportSection = document.getElementById('export-section');
+const importSection = document.getElementById('import-section');
+const exportDataText = document.getElementById('export-data-text');
+const importDataText = document.getElementById('import-data-text');
+const copyDataButton = document.getElementById('copy-data');
+const confirmImportButton = document.getElementById('confirm-import');
+const cancelImportButton = document.getElementById('cancel-import');
+const dataModalTitle = document.getElementById('data-modal-title');
 
 // Initialisation de l'application
-async function initApp() {
-    try {
-        // Se connecter anonymement à Firebase
-        currentUser = await signInAnonymously();
-        
-        // Charger les habitudes depuis Firestore
-        habits = await loadHabitsFromFirestore(currentUser.uid);
-        renderHabits();
-        renderCalendarLegend();
-        
-        // Configurer l'écouteur en temps réel
-        habitsListener = setupHabitsListener(currentUser.uid, (updatedHabits) => {
-            habits = updatedHabits;
-            renderHabits();
-            renderCalendar();
-            renderCalendarLegend();
-            
-            // Mettre à jour le graphique si on est sur la vue progrès
-            if (progressView.classList.contains('active')) {
-                renderProgressChart();
-            }
-        });
-    } catch (error) {
-        console.error("Erreur lors de l'initialisation:", error);
-        // Fallback vers le stockage local si Firebase échoue
-        habits = JSON.parse(localStorage.getItem('habits')) || [];
-        renderHabits();
-        renderCalendarLegend();
-        
-        // Initialiser le graphique si on est sur la vue progrès
-        if (progressView.classList.contains('active')) {
-            renderProgressChart();
-        }
+function initApp() {
+    // Charger les habitudes depuis le localStorage
+    habits = loadHabitsFromStorage();
+    renderHabits();
+    renderCalendarLegend();
+    
+    // Initialiser le graphique si on est sur la vue progrès
+    if (progressView.classList.contains('active')) {
+        renderProgressChart();
     }
+}
+
+// Fonctions de stockage local
+function saveHabitsToStorage() {
+    localStorage.setItem('habits', JSON.stringify(habits));
+}
+
+function loadHabitsFromStorage() {
+    const habitsData = localStorage.getItem('habits');
+    return habitsData ? JSON.parse(habitsData) : [];
 }
 
 // Fonctions de base
-async function saveHabits() {
-    try {
-        // Sauvegarder chaque habitude dans Firestore
-        for (const habit of habits) {
-            habit.userId = currentUser.uid;
-            await saveHabitToFirestore(habit);
-        }
-    } catch (error) {
-        console.error("Erreur lors de la sauvegarde Firebase, utilisation du stockage local:", error);
-        localStorage.setItem('habits', JSON.stringify(habits));
-    }
+function saveHabits() {
+    saveHabitsToStorage();
 }
 
-async function addHabit() {
+function addHabit() {
     const emoji = habitEmojiInput.value.trim();
     const name = habitNameInput.value.trim();
     const color = habitColorInput.value;
@@ -103,45 +89,31 @@ async function addHabit() {
     }
     
     const habit = {
+        id: Date.now().toString(),
         emoji: emoji || '✅',
         name,
         color,
         duration,
         frequency: 'daily',
         completedDates: [],
-        createdAt: new Date().toISOString(),
-        userId: currentUser.uid
+        createdAt: new Date().toISOString()
     };
     
-    try {
-        await saveHabitToFirestore(habit);
-        habits.push(habit);
-        
-        // Réinitialiser le formulaire et fermer la modale
-        habitEmojiInput.value = '';
-        habitNameInput.value = '';
-        habitColorInput.value = '#4caf50';
-        habitDurationInput.value = '15';
-        addHabitModal.style.display = 'none';
-    } catch (error) {
-        console.error("Erreur lors de l'ajout, utilisation du stockage local:", error);
-        habit.id = Date.now().toString();
-        habits.push(habit);
-        localStorage.setItem('habits', JSON.stringify(habits));
-        
-        // Réinitialiser le formulaire et fermer la modale
-        habitEmojiInput.value = '';
-        habitNameInput.value = '';
-        habitColorInput.value = '#4caf50';
-        habitDurationInput.value = '15';
-        addHabitModal.style.display = 'none';
-        
-        renderHabits();
-        renderCalendar();
-    }
+    habits.push(habit);
+    saveHabits();
+    
+    // Réinitialiser le formulaire et fermer la modale
+    habitEmojiInput.value = '';
+    habitNameInput.value = '';
+    habitColorInput.value = '#4caf50';
+    habitDurationInput.value = '15';
+    addHabitModal.style.display = 'none';
+    
+    renderHabits();
+    renderCalendar();
 }
 
-async function toggleHabitDate(habitId, date) {
+function toggleHabitDate(habitId, date) {
     const habit = habits.find(h => h.id === habitId);
     if (!habit) return;
     
@@ -161,13 +133,7 @@ async function toggleHabitDate(habitId, date) {
         habit.completedDates.push(dateStr);
     }
     
-    try {
-        await saveHabitToFirestore(habit);
-    } catch (error) {
-        console.error("Erreur lors de la mise à jour, utilisation du stockage local:", error);
-        localStorage.setItem('habits', JSON.stringify(habits));
-    }
-    
+    saveHabits();
     renderHabits();
     renderCalendar();
     
@@ -177,15 +143,9 @@ async function toggleHabitDate(habitId, date) {
     }
 }
 
-async function deleteHabit(habitId) {
-    try {
-        await deleteHabitFromFirestore(habitId);
-        habits = habits.filter(h => h.id !== habitId);
-    } catch (error) {
-        console.error("Erreur lors de la suppression, utilisation du stockage local:", error);
-        habits = habits.filter(h => h.id !== habitId);
-        localStorage.setItem('habits', JSON.stringify(habits));
-    }
+function deleteHabit(habitId) {
+    habits = habits.filter(h => h.id !== habitId);
+    saveHabits();
     
     deleteConfirmModal.style.display = 'none';
     renderHabits();
@@ -491,6 +451,64 @@ function changeMonth(direction) {
     renderCalendar();
 }
 
+// Fonctions d'import/export
+function exportData() {
+    const data = {
+        habits: habits,
+        exportedAt: new Date().toISOString()
+    };
+    
+    const jsonData = JSON.stringify(data, null, 2);
+    exportDataText.value = jsonData;
+    
+    dataModalTitle.textContent = "Exporter les données";
+    exportSection.style.display = 'block';
+    importSection.style.display = 'none';
+    dataModal.style.display = 'block';
+}
+
+function importData() {
+    dataModalTitle.textContent = "Importer les données";
+    exportSection.style.display = 'none';
+    importSection.style.display = 'block';
+    importDataText.value = '';
+    dataModal.style.display = 'block';
+}
+
+function copyToClipboard() {
+    exportDataText.select();
+    document.execCommand('copy');
+    alert('Données copiées dans le presse-papier !');
+}
+
+function confirmImport() {
+    try {
+        const data = JSON.parse(importDataText.value);
+        
+        if (!data.habits || !Array.isArray(data.habits)) {
+            throw new Error("Format de données invalide");
+        }
+        
+        // Demander confirmation avant d'importer
+        if (confirm("L'importation écrasera toutes vos données actuelles. Êtes-vous sûr de vouloir continuer ?")) {
+            habits = data.habits;
+            saveHabits();
+            renderHabits();
+            renderCalendar();
+            renderCalendarLegend();
+            
+            if (progressView.classList.contains('active')) {
+                renderProgressChart();
+            }
+            
+            alert('Données importées avec succès !');
+            dataModal.style.display = 'none';
+        }
+    } catch (error) {
+        alert('Erreur lors de l\'importation: ' + error.message);
+    }
+}
+
 // Événements
 menuButton.addEventListener('click', toggleMenu);
 
@@ -503,10 +521,12 @@ document.addEventListener('click', (event) => {
 
 // Navigation entre les vues
 navItems.forEach(item => {
-    item.addEventListener('click', () => {
-        const viewId = item.getAttribute('data-view');
-        switchView(viewId);
-    });
+    if (item.id !== 'export-data' && item.id !== 'import-data') {
+        item.addEventListener('click', () => {
+            const viewId = item.getAttribute('data-view');
+            switchView(viewId);
+        });
+    }
 });
 
 // Suggestions d'emoji
@@ -522,12 +542,19 @@ saveHabitButton.addEventListener('click', addHabit);
 addHabitButton.addEventListener('click', () => {
     addHabitModal.style.display = 'block';
 });
-closeModal.addEventListener('click', () => {
-    addHabitModal.style.display = 'none';
+
+closeModal.forEach(closeBtn => {
+    closeBtn.addEventListener('click', () => {
+        addHabitModal.style.display = 'none';
+        deleteConfirmModal.style.display = 'none';
+        dataModal.style.display = 'none';
+    });
 });
+
 cancelDeleteButton.addEventListener('click', () => {
     deleteConfirmModal.style.display = 'none';
 });
+
 confirmDeleteButton.addEventListener('click', () => {
     if (currentHabitToDelete) {
         deleteHabit(currentHabitToDelete);
@@ -541,6 +568,9 @@ window.addEventListener('click', (event) => {
     }
     if (event.target === deleteConfirmModal) {
         deleteConfirmModal.style.display = 'none';
+    }
+    if (event.target === dataModal) {
+        dataModal.style.display = 'none';
     }
 });
 
@@ -556,6 +586,15 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedTimeFilter = parseInt(this.getAttribute('data-days'));
             renderProgressChart();
         });
+    });
+    
+    // Boutons d'import/export
+    exportButton.addEventListener('click', exportData);
+    importButton.addEventListener('click', importData);
+    copyDataButton.addEventListener('click', copyToClipboard);
+    confirmImportButton.addEventListener('click', confirmImport);
+    cancelImportButton.addEventListener('click', () => {
+        dataModal.style.display = 'none';
     });
     
     // Initialiser le graphique si on est déjà sur la vue progrès
