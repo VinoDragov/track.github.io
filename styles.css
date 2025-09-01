@@ -504,3 +504,74 @@ button:hover {
         opacity: 1; /* Toujours visible sur mobile */
     }
 }
+
+/* Styles pour le bouton de suppression */
+.habit-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.delete-habit-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+    opacity: 0.6;
+}
+
+.delete-habit-btn:hover {
+    opacity: 1;
+    background-color: rgba(244, 67, 54, 0.1);
+}
+
+/* Indicateur de synchronisation */
+.sync-indicator {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    background-color: #4caf50;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    display: none;
+    z-index: 2000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.sync-indicator.syncing {
+    display: block;
+    background-color: #2196F3;
+}
+
+.sync-indicator.error {
+    display: block;
+    background-color: #f44336;
+}
+
+/* Ajustements pour la carte d'habitude avec le nouveau bouton */
+.habit-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.habit-card-content {
+    flex: 1;
+}
+
+/* Ajustements pour les écrans mobiles */
+@media (max-width: 768px) {
+    .delete-habit-btn {
+        opacity: 1; /* Toujours visible sur mobile */
+    }
+    
+    .sync-indicator {
+        top: 4rem;
+        right: 0.5rem;
+    }
+}
