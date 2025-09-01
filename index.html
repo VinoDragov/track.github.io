@@ -10,12 +10,6 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.webmanifest">
     
-    <!-- Firebase App (core SDK) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <!-- Firebase Firestore -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <!-- Firebase Auth -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <!-- Chart.js pour les graphiques -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -28,6 +22,8 @@
                 <button class="nav-item" data-view="habits-view">📋 Activités</button>
                 <button class="nav-item" data-view="calendar-view">📅 Calendrier</button>
                 <button class="nav-item" data-view="progress-view">📊 Progrès</button>
+                <button class="nav-item" id="export-data">📤 Exporter</button>
+                <button class="nav-item" id="import-data">📥 Importer</button>
             </div>
         </div>
     </header>
@@ -125,7 +121,27 @@
         </div>
     </div>
 
-    <script src="firebase.js"></script>
+    <!-- Modal pour l'import/export -->
+    <div id="data-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="data-modal-title">Exporter les données</h2>
+            <div id="export-section">
+                <p>Sauvegardez vos données pour les transférer vers un autre appareil ou pour faire une copie de sécurité.</p>
+                <textarea id="export-data-text" readonly></textarea>
+                <button id="copy-data">Copier</button>
+            </div>
+            <div id="import-section" style="display: none;">
+                <p>Collez ici les données que vous avez précédemment exportées.</p>
+                <textarea id="import-data-text" placeholder="Collez les données ici..."></textarea>
+                <div class="modal-buttons">
+                    <button id="cancel-import" class="secondary-btn">Annuler</button>
+                    <button id="confirm-import">Importer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
