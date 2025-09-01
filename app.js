@@ -1,8 +1,10 @@
 // Gestion des données
-let habits = JSON.parse(localStorage.getItem('habits')) || [];
+let habits = [];
 let currentDate = new Date();
 let calendarDate = new Date();
 let currentHabitToDelete = null;
+let currentUser = null;
+let habitsListener = null;
 
 // Éléments DOM
 const habitsContainer = document.getElementById('habits-container');
@@ -30,13 +32,48 @@ const calendarLegend = document.getElementById('calendar-legend');
 const navItems = document.querySelectorAll('.nav-item');
 const emojiSuggestions = document.querySelectorAll('.emoji-suggestion');
 
-// Fonctions de base
-function saveHabits() {
-    localStorage.setItem('habits', JSON.stringify(habits));
-    renderCalendarLegend();
+// Initialisation de l'application
+async function initApp() {
+    try {
+        // Se connecter anonymement à Firebase
+        currentUser = await signInAnonymously();
+        
+        // Charger les habitudes depuis Firestore
+        habits = await loadHabitsFromFirestore(currentUser.uid);
+        renderHabits();
+        renderCalendarLegend();
+        
+        // Configurer l'écouteur en temps réel
+        habitsListener = setupHabitsListener(currentUser.uid, (updatedHabits) => {
+            habits = updatedHabits;
+            renderHabits();
+            renderCalendar();
+            renderCalendarLegend();
+        });
+    } catch (error) {
+        console.error("Erreur lors de l'initialisation:", error);
+        // Fallback vers le stockage local si Firebase échoue
+        habits = JSON.parse(localStorage.getItem('habits')) || [];
+        renderHabits();
+        renderCalendarLegend();
+    }
 }
 
-function addHabit() {
+// Fonctions de base
+async function saveHabits() {
+    try {
+        // Sauvegarder chaque habitude dans Firestore
+        for (const habit of habits) {
+            habit.userId = currentUser.uid;
+            await saveHabitToFirestore(habit);
+        }
+    } catch (error) {
+        console.error("Erreur lors de la sauvegarde Firebase, utilisation du stockage local:", error);
+        localStorage.setItem('habits', JSON.stringify(habits));
+    }
+}
+
+async function addHabit() {
     const emoji = habitEmojiInput.value.trim();
     const name = habitNameInput.value.trim();
     const color = habitColorInput.value;
@@ -53,30 +90,45 @@ function addHabit() {
     }
     
     const habit = {
-        id: Date.now(),
         emoji: emoji || '✅',
         name,
         color,
         duration,
         frequency: 'daily',
         completedDates: [],
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        userId: currentUser.uid
     };
     
-    habits.push(habit);
-    saveHabits();
-    renderHabits();
-    renderCalendar();
-    
-    // Réinitialiser le formulaire et fermer la modale
-    habitEmojiInput.value = '';
-    habitNameInput.value = '';
-    habitColorInput.value = '#4caf50';
-    habitDurationInput.value = '15';
-    addHabitModal.style.display = 'none';
+    try {
+        await saveHabitToFirestore(habit);
+        habits.push(habit);
+        
+        // Réinitialiser le formulaire et fermer la modale
+        habitEmojiInput.value = '';
+        habitNameInput.value = '';
+        habitColorInput.value = '#4caf50';
+        habitDurationInput.value = '15';
+        addHabitModal.style.display = 'none';
+    } catch (error) {
+        console.error("Erreur lors de l'ajout, utilisation du stockage local:", error);
+        habit.id = Date.now().toString();
+        habits.push(habit);
+        localStorage.setItem('habits', JSON.stringify(habits));
+        
+        // Réinitialiser le formulaire et fermer la modale
+        habitEmojiInput.value = '';
+        habitNameInput.value = '';
+        habitColorInput.value = '#4caf50';
+        habitDurationInput.value = '15';
+        addHabitModal.style.display = 'none';
+        
+        renderHabits();
+        renderCalendar();
+    }
 }
 
-function toggleHabitDate(habitId, date) {
+async function toggleHabitDate(habitId, date) {
     const habit = habits.find(h => h.id === habitId);
     if (!habit) return;
     
@@ -96,17 +148,30 @@ function toggleHabitDate(habitId, date) {
         habit.completedDates.push(dateStr);
     }
     
-    saveHabits();
+    try {
+        await saveHabitToFirestore(habit);
+    } catch (error) {
+        console.error("Erreur lors de la mise à jour, utilisation du stockage local:", error);
+        localStorage.setItem('habits', JSON.stringify(habits));
+    }
+    
     renderHabits();
     renderCalendar();
 }
 
-function deleteHabit(habitId) {
-    habits = habits.filter(h => h.id !== habitId);
-    saveHabits();
+async function deleteHabit(habitId) {
+    try {
+        await deleteHabitFromFirestore(habitId);
+        habits = habits.filter(h => h.id !== habitId);
+    } catch (error) {
+        console.error("Erreur lors de la suppression, utilisation du stockage local:", error);
+        habits = habits.filter(h => h.id !== habitId);
+        localStorage.setItem('habits', JSON.stringify(habits));
+    }
+    
+    deleteConfirmModal.style.display = 'none';
     renderHabits();
     renderCalendar();
-    deleteConfirmModal.style.display = 'none';
 }
 
 function renderHabits() {
@@ -333,5 +398,4 @@ window.addEventListener('click', (event) => {
 });
 
 // Initialisation
-renderHabits();
-renderCalendarLegend();
+initApp();
