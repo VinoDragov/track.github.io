@@ -1,11 +1,12 @@
 // Configuration Firebase - À remplacer avec votre propre configuration
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAS0g79eae9r97oNbiiJvZRkCoozeUY40s",
+  authDomain: "track-b149e.firebaseapp.com",
+  databaseURL: "https://track-b149e-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "track-b149e",
+  storageBucket: "track-b149e.firebasestorage.app",
+  messagingSenderId: "310280121473",
+  appId: "1:310280121473:web:10adf16bd96ebb2df67180"
 };
 
 // Initialiser Firebase
