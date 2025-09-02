@@ -800,3 +800,27 @@ button:hover {
         grid-template-columns: 1fr;
     }
 }
+
+/* Styles pour le bouton de réinitialisation */
+.reset-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+}
+
+.reset-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.current-date {
+    position: relative;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
