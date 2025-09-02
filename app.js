@@ -49,6 +49,247 @@ function initApp() {
     }
 }
 
+// Fonctions pour le suivi de poids
+function initWeightTracker() {
+    // Charger les données depuis le localStorage
+    weightProfile = loadFromStorage('weightProfile');
+    weightData = loadFromStorage('weightData') || [];
+    
+    // Configurer la date du jour par défaut
+    const weightDateInput = document.getElementById('weight-date');
+    if (weightDateInput) {
+        weightDateInput.valueAsDate = new Date();
+    }
+    
+    // Afficher la vue appropriée
+    const weightSetup = document.getElementById('weight-setup');
+    const weightTracker = document.getElementById('weight-tracker');
+    
+    if (weightProfile) {
+        weightSetup.style.display = 'none';
+        weightTracker.style.display = 'block';
+        updateWeightUI();
+    } else {
+        weightSetup.style.display = 'block';
+        weightTracker.style.display = 'none';
+    }
+}
+
+function setupWeightProfile() {
+    const initialWeight = parseFloat(document.getElementById('initial-weight').value);
+    const goalWeight = parseFloat(document.getElementById('goal-weight').value);
+    
+    if (!initialWeight || !goalWeight) {
+        alert('Veuillez remplir tous les champs');
+        return;
+    }
+    
+    if (initialWeight <= goalWeight) {
+        alert('Votre objectif doit être inférieur à votre poids actuel');
+        return;
+    }
+    
+    weightProfile = {
+        initialWeight,
+        goalWeight,
+        startDate: new Date().toISOString()
+    };
+    
+    // Ajouter la première entrée de poids
+    addWeightEntry(initialWeight, new Date());
+    
+    saveToStorage('weightProfile', weightProfile);
+    
+    // Afficher la vue de suivi
+    document.getElementById('weight-setup').style.display = 'none';
+    document.getElementById('weight-tracker').style.display = 'block';
+    
+    updateWeightUI();
+}
+
+function addWeightEntry(weight, date) {
+    const weightEntry = {
+        weight,
+        date: date.toISOString()
+    };
+    
+    weightData.push(weightEntry);
+    
+    // Trier les entrées par date (plus récent en premier)
+    weightData.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    saveToStorage('weightData', weightData);
+    updateWeightUI();
+}
+
+function recordWeight() {
+    const weight = parseFloat(document.getElementById('weight-input').value);
+    const date = new Date(document.getElementById('weight-date').value);
+    
+    if (!weight) {
+        alert('Veuillez entrer votre poids');
+        return;
+    }
+    
+    addWeightEntry(weight, date);
+    
+    // Réinitialiser le formulaire et fermer la modale
+    document.getElementById('weight-input').value = '';
+    document.getElementById('weight-date').valueAsDate = new Date();
+    document.getElementById('add-weight-modal').style.display = 'none';
+}
+
+function updateWeightUI() {
+    if (weightData.length === 0) return;
+    
+    const latestWeight = weightData[0].weight;
+    const goalWeight = weightProfile.goalWeight;
+    const remaining = (latestWeight - goalWeight).toFixed(1);
+    
+    // Mettre à jour les statistiques
+    document.getElementById('current-weight').textContent = `${latestWeight} kg`;
+    document.getElementById('goal-display').textContent = `${goalWeight} kg`;
+    document.getElementById('remaining-display').textContent = `${remaining} kg`;
+    
+    // Mettre à jour le graphique
+    renderWeightChart();
+    
+    // Mettre à jour l'historique
+    renderWeightHistory();
+}
+
+function renderWeightChart() {
+    const ctx = document.getElementById('weight-chart');
+    
+    if (!ctx) return;
+    
+    // Détruire le graphique existant s'il y en a un
+    if (weightChart) {
+        weightChart.destroy();
+    }
+    
+    // Préparer les données pour le graphique
+    const sortedData = [...weightData].sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    const labels = sortedData.map(entry => {
+        const date = new Date(entry.date);
+        return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    });
+    
+    const weights = sortedData.map(entry => entry.weight);
+    
+    // Créer le graphique de ligne
+    weightChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Poids (kg)',
+                data: weights,
+                borderColor: '#4CAF50',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: '#4CAF50',
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Poids: ${context.raw} kg`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    title: {
+                        display: true,
+                        text: 'Poids (kg)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function renderWeightHistory() {
+    const weightEntriesContainer = document.getElementById('weight-entries');
+    if (!weightEntriesContainer) return;
+    
+    weightEntriesContainer.innerHTML = '';
+    
+    if (weightData.length === 0) {
+        weightEntriesContainer.innerHTML = '<p class="empty-state">Aucune entrée de poids enregistrée.</p>';
+        return;
+    }
+    
+    // Afficher les 7 dernières entrées
+    const recentEntries = weightData.slice(0, 7);
+    
+    recentEntries.forEach((entry, index) => {
+        const entryElement = document.createElement('div');
+        entryElement.className = 'weight-entry';
+        
+        const entryDate = new Date(entry.date);
+        const dateFormatted = entryDate.toLocaleDateString('fr-FR', { 
+            weekday: 'short', 
+            day: 'numeric', 
+            month: 'short' 
+        });
+        
+        // Calculer la différence avec l'entrée précédente
+        let difference = '';
+        if (index < recentEntries.length - 1) {
+            const prevWeight = recentEntries[index + 1].weight;
+            const diff = entry.weight - prevWeight;
+            
+            if (diff !== 0) {
+                const diffFormatted = Math.abs(diff).toFixed(1);
+                if (diff < 0) {
+                    difference = `<span class="entry-difference positive">-${diffFormatted} kg</span>`;
+                } else {
+                    difference = `<span class="entry-difference negative">+${diffFormatted} kg</span>`;
+                }
+            }
+        }
+        
+        entryElement.innerHTML = `
+            <div class="entry-date">${dateFormatted}</div>
+            <div class="entry-weight">${entry.weight} kg</div>
+            ${difference}
+        `;
+        
+        weightEntriesContainer.appendChild(entryElement);
+    });
+}
+
+// Fonction utilitaire pour le stockage
+function saveToStorage(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
+}
+
+function loadFromStorage(key) {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : null;
+}
+
 // Fonctions de stockage local
 function saveHabitsToStorage() {
     localStorage.setItem('habits', JSON.stringify(habits));
