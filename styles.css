@@ -678,3 +678,125 @@ button:hover {
         font-size: 0.8rem;
     }
 }
+
+/* Styles pour le suivi de poids */
+.setup-card {
+    background-color: var(--card-color);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin: 2rem auto;
+    max-width: 500px;
+    text-align: center;
+}
+
+.setup-card h3 {
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.setup-card p {
+    margin-bottom: 2rem;
+    color: var(--light-text);
+}
+
+.stats-header {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background-color: var(--card-color);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stat-card h3 {
+    font-size: 0.9rem;
+    color: var(--light-text);
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.weight-history {
+    background-color: var(--card-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-top: 1.5rem;
+}
+
+.weight-history h3 {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.weight-entry {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.weight-entry:last-child {
+    border-bottom: none;
+}
+
+.entry-date {
+    color: var(--light-text);
+    font-size: 0.9rem;
+}
+
+.entry-weight {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.entry-difference {
+    font-size: 0.9rem;
+}
+
+.positive {
+    color: #4CAF50;
+}
+
+.negative {
+    color: #F44336;
+}
+
+.actions {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.primary-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.primary-btn:hover {
+    background-color: var(--secondary-color);
+}
+
+@media (max-width: 768px) {
+    .stats-header {
+        grid-template-columns: 1fr;
+    }
+}
