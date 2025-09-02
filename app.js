@@ -36,6 +36,7 @@ const todayDateElement = document.getElementById('today-date');
 const calendarLegend = document.getElementById('calendar-legend');
 const navItems = document.querySelectorAll('.nav-item');
 const emojiSuggestions = document.querySelectorAll('.emoji-suggestion');
+const resetWeightButton = document.getElementById('reset-weight-btn');
 
 // Initialisation de l'application
 function initApp() {
@@ -53,6 +54,8 @@ function initApp() {
         document.getElementById('add-weight-modal').style.display = 'block';
     });
     document.getElementById('save-weight')?.addEventListener('click', recordWeight);
+
+    resetWeightButton?.addEventListener('click', confirmResetWeightData);
     
     // Initialiser le graphique si on est sur la vue progrès
     if (progressView.classList.contains('active')) {
@@ -689,6 +692,28 @@ function switchView(viewId) {
     }
     
     closeMenu();
+}
+
+function confirmResetWeightData() {
+    if (confirm('Êtes-vous sûr de vouloir réinitialiser toutes vos données de poids ? Cette action est irréversible.')) {
+        resetWeightData();
+    }
+}
+
+function resetWeightData() {
+    // Supprimer les données de poids
+    localStorage.removeItem('weightProfile');
+    localStorage.removeItem('weightData');
+    
+    // Réinitialiser les variables
+    weightProfile = null;
+    weightData = [];
+    
+    // Recharger l'interface
+    initWeightTracker();
+    
+    // Afficher un message de confirmation
+    alert('Données de poids réinitialisées avec succès.');
 }
 
 // Navigation dans le calendrier
