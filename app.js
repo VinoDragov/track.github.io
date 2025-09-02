@@ -14,6 +14,7 @@ const habitsContainer = document.getElementById('habits-container');
 const habitsView = document.getElementById('habits-view');
 const calendarView = document.getElementById('calendar-view');
 const progressView = document.getElementById('progress-view');
+const weightView = document.getElementById('weight-view');
 const menuButton = document.getElementById('menu-button');
 const navigationMenu = document.getElementById('navigation-menu');
 const calendarElement = document.getElementById('calendar');
@@ -46,10 +47,10 @@ function initApp() {
     // Initialisation du suivi de poids
     initWeightTracker();
 
-// Événements pour le suivi de poids
+    // Événements pour le suivi de poids
     document.getElementById('save-weight-setup')?.addEventListener('click', setupWeightProfile);
     document.getElementById('add-weight-btn')?.addEventListener('click', () => {
-    document.getElementById('add-weight-modal').style.display = 'block';
+        document.getElementById('add-weight-modal').style.display = 'block';
     });
     document.getElementById('save-weight')?.addEventListener('click', recordWeight);
     
@@ -89,8 +90,8 @@ function setupWeightProfile() {
     const initialWeight = parseFloat(document.getElementById('initial-weight').value);
     const goalWeight = parseFloat(document.getElementById('goal-weight').value);
     
-    if (!initialWeight || !goalWeight) {
-        alert('Veuillez remplir tous les champs');
+    if (!initialWeight || !goalWeight || isNaN(initialWeight) || isNaN(goalWeight)) {
+        alert('Veuillez remplir tous les champs avec des valeurs numériques valides');
         return;
     }
     
@@ -136,7 +137,7 @@ function recordWeight() {
     const weight = parseFloat(document.getElementById('weight-input').value);
     const date = new Date(document.getElementById('weight-date').value);
     
-    if (!weight) {
+    if (!weight || isNaN(weight)) {
         alert('Veuillez entrer votre poids');
         return;
     }
@@ -732,7 +733,6 @@ closeModal.forEach(closeBtn => {
     closeBtn.addEventListener('click', () => {
         addHabitModal.style.display = 'none';
         deleteConfirmModal.style.display = 'none';
-        dataModal.style.display = 'none';
     });
 });
 
@@ -754,8 +754,8 @@ window.addEventListener('click', (event) => {
     if (event.target === deleteConfirmModal) {
         deleteConfirmModal.style.display = 'none';
     }
-    if (event.target === dataModal) {
-        dataModal.style.display = 'none';
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
     }
 });
 
