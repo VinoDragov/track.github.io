@@ -5,6 +5,9 @@ let calendarDate = new Date();
 let currentHabitToDelete = null;
 let selectedTimeFilter = 7; // Filtre par défaut: 7 jours
 let progressChart = null;
+let weightData = [];
+let weightProfile = null;
+let weightChart = null;
 
 // Éléments DOM
 const habitsContainer = document.getElementById('habits-container');
