@@ -709,8 +709,28 @@ function resetWeightData() {
     weightProfile = null;
     weightData = [];
     
-    // Recharger l'interface
-    initWeightTracker();
+    // Mettre à jour l'interface utilisateur
+    const weightSetup = document.getElementById('weight-setup');
+    const weightTracker = document.getElementById('weight-tracker');
+    
+    weightSetup.style.display = 'block';
+    weightTracker.style.display = 'none';
+    
+    // Réinitialiser les champs du formulaire
+    document.getElementById('initial-weight').value = '';
+    document.getElementById('goal-weight').value = '';
+    
+    // Détruire le graphique s'il existe
+    if (weightChart) {
+        weightChart.destroy();
+        weightChart = null;
+    }
+    
+    // Vider l'historique des entrées
+    const weightEntriesContainer = document.getElementById('weight-entries');
+    if (weightEntriesContainer) {
+        weightEntriesContainer.innerHTML = '<p class="empty-state">Aucune entrée de poids enregistrée.</p>';
+    }
     
     // Afficher un message de confirmation
     alert('Données de poids réinitialisées avec succès.');
