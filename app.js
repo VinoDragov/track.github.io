@@ -42,6 +42,16 @@ function initApp() {
     habits = loadHabitsFromStorage();
     renderHabits();
     renderCalendarLegend();
+
+    // Initialisation du suivi de poids
+    initWeightTracker();
+
+// Événements pour le suivi de poids
+    document.getElementById('save-weight-setup')?.addEventListener('click', setupWeightProfile);
+    document.getElementById('add-weight-btn')?.addEventListener('click', () => {
+    document.getElementById('add-weight-modal').style.display = 'block';
+    });
+    document.getElementById('save-weight')?.addEventListener('click', recordWeight);
     
     // Initialiser le graphique si on est sur la vue progrès
     if (progressView.classList.contains('active')) {
@@ -673,6 +683,8 @@ function switchView(viewId) {
         renderCalendar();
     } else if (viewId === 'progress-view') {
         renderProgressChart();
+    } else if (viewId === 'weight-view') {
+        initWeightTracker();
     }
     
     closeMenu();
