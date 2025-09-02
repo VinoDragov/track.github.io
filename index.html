@@ -71,83 +71,83 @@
                 <!-- Le résumé des statistiques sera ajouté ici dynamiquement -->
             </div>
         </div>
-    </div>
 
-    <!-- Section Poids -->
-<div id="weight-view" class="view">
-    <div class="current-date">
-        <h2>Suivi de Poids</h2>
-    </div>
-    
-    <!-- Configuration initiale -->
-    <div id="weight-setup" class="setup-card" style="display: none;">
-        <h3>Configuration Initiale</h3>
-        <div class="form-group">
-            <label for="initial-weight">Poids actuel (kg)</label>
-            <input type="number" id="initial-weight" step="0.1" min="30" max="300" placeholder="Ex: 75.5">
-        </div>
-        
-        <div class="form-group">
-            <label for="goal-weight">Objectif de poids (kg)</label>
-            <input type="number" id="goal-weight" step="0.1" min="30" max="300" placeholder="Ex: 68.0">
-        </div>
-        
-        <button id="save-weight-setup" class="primary-btn">Commencer le suivi</button>
-    </div>
-
-    <!-- Vue principale du suivi -->
-    <div id="weight-tracker" style="display: none;">
-        <div class="stats-header">
-            <div class="stat-card">
-                <h3>Poids Actuel</h3>
-                <div id="current-weight" class="stat-value">-- kg</div>
+        <!-- Section Poids -->
+        <div id="weight-view" class="view">
+            <div class="current-date">
+                <h2>Suivi de Poids</h2>
             </div>
-            <div class="stat-card">
-                <h3>Objectif</h3>
-                <div id="goal-display" class="stat-value">-- kg</div>
+            
+            <!-- Configuration initiale -->
+            <div id="weight-setup" class="setup-card">
+                <h3>Configuration Initiale</h3>
+                <div class="form-group">
+                    <label for="initial-weight">Poids actuel (kg)</label>
+                    <input type="number" id="initial-weight" step="0.1" min="30" max="300" placeholder="Ex: 75.5">
+                </div>
+                
+                <div class="form-group">
+                    <label for="goal-weight">Objectif de poids (kg)</label>
+                    <input type="number" id="goal-weight" step="0.1" min="30" max="300" placeholder="Ex: 68.0">
+                </div>
+                
+                <button id="save-weight-setup" class="primary-btn">Commencer le suivi</button>
             </div>
-            <div class="stat-card">
-                <h3>Reste à perdre</h3>
-                <div id="remaining-display" class="stat-value">-- kg</div>
-            </div>
-        </div>
 
-        <div class="chart-container">
-            <canvas id="weight-chart"></canvas>
-        </div>
+            <!-- Vue principale du suivi -->
+            <div id="weight-tracker" style="display: none;">
+                <div class="stats-header">
+                    <div class="stat-card">
+                        <h3>Poids Actuel</h3>
+                        <div id="current-weight" class="stat-value">-- kg</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Objectif</h3>
+                        <div id="goal-display" class="stat-value">-- kg</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Reste à perdre</h3>
+                        <div id="remaining-display" class="stat-value">-- kg</div>
+                    </div>
+                </div>
 
-        <div class="actions">
-            <button id="add-weight-btn" class="primary-btn">Ajouter mon poids du jour</button>
-        </div>
+                <div class="chart-container">
+                    <canvas id="weight-chart"></canvas>
+                </div>
 
-        <div class="weight-history">
-            <h3>Historique des entrées</h3>
-            <div id="weight-entries">
-                <!-- Les entrées de poids seront ajoutées ici -->
+                <div class="actions">
+                    <button id="add-weight-btn" class="primary-btn">Ajouter mon poids du jour</button>
+                </div>
+
+                <div class="weight-history">
+                    <h3>Historique des entrées</h3>
+                    <div id="weight-entries">
+                        <!-- Les entrées de poids seront ajoutées ici -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Modal pour ajouter une entrée de poids -->
-<div id="add-weight-modal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Ajouter mon poids</h2>
-        
-        <div class="form-group">
-            <label for="weight-input">Poids (kg)</label>
-            <input type="number" id="weight-input" step="0.1" min="30" max="300" placeholder="Ex: 74.2">
+    <!-- Modal pour ajouter une entrée de poids -->
+    <div id="add-weight-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Ajouter mon poids</h2>
+            
+            <div class="form-group">
+                <label for="weight-input">Poids (kg)</label>
+                <input type="number" id="weight-input" step="0.1" min="30" max="300" placeholder="Ex: 74.2">
+            </div>
+            
+            <div class="form-group">
+                <label for="weight-date">Date</label>
+                <input type="date" id="weight-date">
+            </div>
+            
+            <button id="save-weight" class="primary-btn">Enregistrer</button>
         </div>
-        
-        <div class="form-group">
-            <label for="weight-date">Date</label>
-            <input type="date" id="weight-date">
-        </div>
-        
-        <button id="save-weight" class="primary-btn">Enregistrer</button>
     </div>
-</div>
 
     <!-- Bouton flottant pour ajouter une activité -->
     <button id="add-habit-btn" class="floating-btn">+</button>
