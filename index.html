@@ -15,14 +15,15 @@
 </head>
 <body>
     <header>
-        <h1></h1>
+        <h1>Suivi d'évolution</h1>
         <div class="menu-container">
             <button id="menu-button" class="menu-button">☰</button>
             <div id="navigation-menu" class="navigation-menu">
-                    <button class="nav-item" data-view="habits-view">📋 Activités</button>
-                    <button class="nav-item" data-view="calendar-view">📅 Calendrier</button>
-                    <button class="nav-item" data-view="progress-view">📊 Progrès</button>
-                    <button class="nav-item" data-view="weight-view">⚖️ Poids</button>
+                <button class="nav-item" data-view="habits-view">📋 Activités</button>
+                <button class="nav-item" data-view="calendar-view">📅 Calendrier</button>
+                <button class="nav-item" data-view="progress-view">📊 Progrès</button>
+                <button class="nav-item" data-view="weight-view">⚖️ Poids</button>
+                <button class="nav-item" data-view="accounting-view">💰 Comptabilité</button>
             </div>
         </div>
     </header>
@@ -74,7 +75,7 @@
 
         <!-- Section Poids -->
         <div id="weight-view" class="view">
-                <div class="current-date">
+            <div class="current-date">
                 <h2>Suivi de Poids</h2>
                 <button id="reset-weight-btn" class="reset-btn" title="Réinitialiser les données">🔄</button>
             </div>
@@ -128,6 +129,55 @@
                 </div>
             </div>
         </div>
+
+        <!-- Section Comptabilité -->
+        <div id="accounting-view" class="view">
+            <div class="current-date">
+                <h2>Suivi Comptable</h2>
+                <button id="reset-accounting-btn" class="reset-btn" title="Réinitialiser les données">🔄</button>
+            </div>
+            
+            <!-- Configuration initiale -->
+            <div id="accounting-setup" class="setup-card">
+                <h3>Configuration Initiale</h3>
+                <div class="form-group">
+                    <label for="initial-capital">Capital de départ (€)</label>
+                    <input type="number" id="initial-capital" step="0.01" placeholder="Ex: 1000.00 ou -500.00">
+                </div>
+                
+                <button id="save-accounting-setup" class="primary-btn">Commencer le suivi</button>
+            </div>
+
+            <!-- Vue principale du suivi comptable -->
+            <div id="accounting-tracker" style="display: none;">
+                <div class="stats-header">
+                    <div class="stat-card">
+                        <h3>Capital Actuel</h3>
+                        <div id="current-capital" class="stat-value">-- €</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Revenus</h3>
+                        <div id="total-income" class="stat-value">-- €</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Dépenses</h3>
+                        <div id="total-expenses" class="stat-value">-- €</div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button id="add-income-btn" class="primary-btn">Ajouter un revenu</button>
+                    <button id="add-expense-btn" class="secondary-btn">Ajouter une dépense</button>
+                </div>
+
+                <div class="accounting-history">
+                    <h3>Historique des transactions</h3>
+                    <div id="accounting-entries">
+                        <!-- Les entrées comptables seront ajoutées ici -->
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal pour ajouter une entrée de poids -->
@@ -147,6 +197,56 @@
             </div>
             
             <button id="save-weight" class="primary-btn">Enregistrer</button>
+        </div>
+    </div>
+
+    <!-- Modal pour ajouter un revenu -->
+    <div id="add-income-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Ajouter un revenu</h2>
+            
+            <div class="form-group">
+                <label for="income-amount">Montant (€)</label>
+                <input type="number" id="income-amount" step="0.01" min="0.01" placeholder="Ex: 150.00">
+            </div>
+            
+            <div class="form-group">
+                <label for="income-description">Description</label>
+                <input type="text" id="income-description" placeholder="Ex: Vente produit X">
+            </div>
+            
+            <div class="form-group">
+                <label for="income-date">Date</label>
+                <input type="date" id="income-date">
+            </div>
+            
+            <button id="save-income" class="primary-btn">Enregistrer</button>
+        </div>
+    </div>
+
+    <!-- Modal pour ajouter une dépense -->
+    <div id="add-expense-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Ajouter une dépense</h2>
+            
+            <div class="form-group">
+                <label for="expense-amount">Montant (€)</label>
+                <input type="number" id="expense-amount" step="0.01" min="0.01" placeholder="Ex: 50.00">
+            </div>
+            
+            <div class="form-group">
+                <label for="expense-description">Description</label>
+                <input type="text" id="expense-description" placeholder="Ex: Achat fournitures">
+            </div>
+            
+            <div class="form-group">
+                <label for="expense-date">Date</label>
+                <input type="date" id="expense-date">
+            </div>
+            
+            <button id="save-expense" class="primary-btn">Enregistrer</button>
         </div>
     </div>
 
