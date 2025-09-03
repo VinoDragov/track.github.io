@@ -9,12 +9,17 @@ let weightData = [];
 let weightProfile = null;
 let weightChart = null;
 
+// Données pour la comptabilité
+let accountingData = [];
+let accountingProfile = null;
+
 // Éléments DOM
 const habitsContainer = document.getElementById('habits-container');
 const habitsView = document.getElementById('habits-view');
 const calendarView = document.getElementById('calendar-view');
 const progressView = document.getElementById('progress-view');
 const weightView = document.getElementById('weight-view');
+const accountingView = document.getElementById('accounting-view');
 const menuButton = document.getElementById('menu-button');
 const navigationMenu = document.getElementById('navigation-menu');
 const calendarElement = document.getElementById('calendar');
@@ -37,6 +42,7 @@ const calendarLegend = document.getElementById('calendar-legend');
 const navItems = document.querySelectorAll('.nav-item');
 const emojiSuggestions = document.querySelectorAll('.emoji-suggestion');
 const resetWeightButton = document.getElementById('reset-weight-btn');
+const resetAccountingButton = document.getElementById('reset-accounting-btn');
 
 // Initialisation de l'application
 function initApp() {
@@ -48,6 +54,9 @@ function initApp() {
     // Initialisation du suivi de poids
     initWeightTracker();
 
+    // Initialisation de la comptabilité
+    initAccounting();
+
     // Événements pour le suivi de poids
     document.getElementById('save-weight-setup')?.addEventListener('click', setupWeightProfile);
     document.getElementById('add-weight-btn')?.addEventListener('click', () => {
@@ -55,7 +64,19 @@ function initApp() {
     });
     document.getElementById('save-weight')?.addEventListener('click', recordWeight);
 
+    // Événements pour la comptabilité
+    document.getElementById('save-accounting-setup')?.addEventListener('click', setupAccountingProfile);
+    document.getElementById('add-income-btn')?.addEventListener('click', () => {
+        document.getElementById('add-income-modal').style.display = 'block';
+    });
+    document.getElementById('add-expense-btn')?.addEventListener('click', () => {
+        document.getElementById('add-expense-modal').style.display = 'block';
+    });
+    document.getElementById('save-income')?.addEventListener('click', recordIncome);
+    document.getElementById('save-expense')?.addEventListener('click', recordExpense);
+    
     resetWeightButton?.addEventListener('click', confirmResetWeightData);
+    resetAccountingButton?.addEventListener('click', confirmResetAccountingData);
     
     // Initialiser le graphique si on est sur la vue progrès
     if (progressView.classList.contains('active')) {
@@ -292,6 +313,235 @@ function renderWeightHistory() {
         
         weightEntriesContainer.appendChild(entryElement);
     });
+}
+
+// Fonctions pour la comptabilité
+function initAccounting() {
+    // Charger les données depuis le localStorage
+    accountingProfile = loadFromStorage('accountingProfile');
+    accountingData = loadFromStorage('accountingData') || [];
+    
+    // Configurer la date du jour par défaut
+    const incomeDateInput = document.getElementById('income-date');
+    const expenseDateInput = document.getElementById('expense-date');
+    if (incomeDateInput) incomeDateInput.valueAsDate = new Date();
+    if (expenseDateInput) expenseDateInput.valueAsDate = new Date();
+    
+    // Afficher la vue appropriée
+    const accountingSetup = document.getElementById('accounting-setup');
+    const accountingTracker = document.getElementById('accounting-tracker');
+    
+    if (accountingProfile) {
+        accountingSetup.style.display = 'none';
+        accountingTracker.style.display = 'block';
+        updateAccountingUI();
+    } else {
+        accountingSetup.style.display = 'block';
+        accountingTracker.style.display = 'none';
+    }
+}
+
+function setupAccountingProfile() {
+    const initialCapital = parseFloat(document.getElementById('initial-capital').value);
+    
+    if (isNaN(initialCapital)) {
+        alert('Veuillez entrer un montant valide pour le capital de départ');
+        return;
+    }
+    
+    accountingProfile = {
+        initialCapital,
+        startDate: new Date().toISOString()
+    };
+    
+    // Ajouter l'entrée de capital initial
+    addAccountingEntry({
+        type: 'initial',
+        amount: initialCapital,
+        description: 'Capital initial',
+        date: new Date().toISOString()
+    });
+    
+    saveToStorage('accountingProfile', accountingProfile);
+    
+    // Afficher la vue de suivi
+    document.getElementById('accounting-setup').style.display = 'none';
+    document.getElementById('accounting-tracker').style.display = 'block';
+    
+    updateAccountingUI();
+}
+
+function addAccountingEntry(entry) {
+    accountingData.push(entry);
+    
+    // Trier les entrées par date (plus récent en premier)
+    accountingData.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    saveToStorage('accountingData', accountingData);
+    updateAccountingUI();
+}
+
+function recordIncome() {
+    const amount = parseFloat(document.getElementById('income-amount').value);
+    const description = document.getElementById('income-description').value.trim();
+    const date = new Date(document.getElementById('income-date').value);
+    
+    if (!amount || isNaN(amount) || amount <= 0) {
+        alert('Veuillez entrer un montant valide');
+        return;
+    }
+    
+    if (!description) {
+        alert('Veuillez entrer une description');
+        return;
+    }
+    
+    addAccountingEntry({
+        type: 'income',
+        amount,
+        description,
+        date: date.toISOString()
+    });
+    
+    // Réinitialiser le formulaire et fermer la modale
+    document.getElementById('income-amount').value = '';
+    document.getElementById('income-description').value = '';
+    document.getElementById('income-date').valueAsDate = new Date();
+    document.getElementById('add-income-modal').style.display = 'none';
+}
+
+function recordExpense() {
+    const amount = parseFloat(document.getElementById('expense-amount').value);
+    const description = document.getElementById('expense-description').value.trim();
+    const date = new Date(document.getElementById('expense-date').value);
+    
+    if (!amount || isNaN(amount) || amount <= 0) {
+        alert('Veuillez entrer un montant valide');
+        return;
+    }
+    
+    if (!description) {
+        alert('Veuillez entrer une description');
+        return;
+    }
+    
+    addAccountingEntry({
+        type: 'expense',
+        amount,
+        description,
+        date: date.toISOString()
+    });
+    
+    // Réinitialiser le formulaire et fermer la modale
+    document.getElementById('expense-amount').value = '';
+    document.getElementById('expense-description').value = '';
+    document.getElementById('expense-date').valueAsDate = new Date();
+    document.getElementById('add-expense-modal').style.display = 'none';
+}
+
+function updateAccountingUI() {
+    if (accountingData.length === 0) return;
+    
+    // Calculer les totaux
+    let totalIncome = 0;
+    let totalExpenses = 0;
+    let currentCapital = accountingProfile.initialCapital;
+    
+    accountingData.forEach(entry => {
+        if (entry.type === 'income' || entry.type === 'initial') {
+            totalIncome += entry.amount;
+            currentCapital += entry.amount;
+        } else if (entry.type === 'expense') {
+            totalExpenses += entry.amount;
+            currentCapital -= entry.amount;
+        }
+    });
+    
+    // Mettre à jour les statistiques
+    document.getElementById('current-capital').textContent = `${currentCapital.toFixed(2)} €`;
+    document.getElementById('total-income').textContent = `${totalIncome.toFixed(2)} €`;
+    document.getElementById('total-expenses').textContent = `${totalExpenses.toFixed(2)} €`;
+    
+    // Mettre à jour l'historique
+    renderAccountingHistory();
+}
+
+function renderAccountingHistory() {
+    const accountingEntriesContainer = document.getElementById('accounting-entries');
+    if (!accountingEntriesContainer) return;
+    
+    accountingEntriesContainer.innerHTML = '';
+    
+    if (accountingData.length === 0) {
+        accountingEntriesContainer.innerHTML = '<p class="empty-state">Aucune transaction enregistrée.</p>';
+        return;
+    }
+    
+    // Afficher les 20 dernières entrées
+    const recentEntries = accountingData.slice(0, 20);
+    
+    recentEntries.forEach(entry => {
+        const entryElement = document.createElement('div');
+        entryElement.className = 'accounting-entry';
+        
+        const entryDate = new Date(entry.date);
+        const dateFormatted = entryDate.toLocaleDateString('fr-FR', { 
+            weekday: 'short', 
+            day: 'numeric', 
+            month: 'short',
+            year: 'numeric'
+        });
+        
+        const isIncome = entry.type === 'income' || entry.type === 'initial';
+        const amountClass = isIncome ? 'positive' : 'negative';
+        const amountPrefix = isIncome ? '+' : '-';
+        
+        entryElement.innerHTML = `
+            <div class="entry-icon">${isIncome ? '💰' : '💸'}</div>
+            <div class="entry-details">
+                <div class="entry-description">${entry.description}</div>
+                <div class="entry-date">${dateFormatted}</div>
+            </div>
+            <div class="entry-amount ${amountClass}">${amountPrefix}${entry.amount.toFixed(2)} €</div>
+        `;
+        
+        accountingEntriesContainer.appendChild(entryElement);
+    });
+}
+
+function resetAccountingData() {
+    // Supprimer les données comptables
+    localStorage.removeItem('accountingProfile');
+    localStorage.removeItem('accountingData');
+    
+    // Réinitialiser les variables
+    accountingProfile = null;
+    accountingData = [];
+    
+    // Mettre à jour l'interface utilisateur
+    const accountingSetup = document.getElementById('accounting-setup');
+    const accountingTracker = document.getElementById('accounting-tracker');
+    
+    accountingSetup.style.display = 'block';
+    accountingTracker.style.display = 'none';
+    
+    // Réinitialiser les champs du formulaire
+    document.getElementById('initial-capital').value = '';
+    
+    // Vider l'historique des entrées
+    const accountingEntriesContainer = document.getElementById('accounting-entries');
+    if (accountingEntriesContainer) {
+        accountingEntriesContainer.innerHTML = '<p class="empty-state">Aucune transaction enregistrée.</p>';
+    }
+    
+    // Afficher un message de confirmation
+    alert('Données comptables réinitialisées avec succès.');
+}
+
+function confirmResetAccountingData() {
+    if (confirm('Êtes-vous sûr de vouloir réinitialiser toutes vos données comptables ? Cette action est irréversible.')) {
+        resetAccountingData();
+    }
 }
 
 // Fonction utilitaire pour le stockage
@@ -689,6 +939,8 @@ function switchView(viewId) {
         renderProgressChart();
     } else if (viewId === 'weight-view') {
         initWeightTracker();
+    } else if (viewId === 'accounting-view') {
+        initAccounting();
     }
     
     closeMenu();
@@ -778,6 +1030,9 @@ closeModal.forEach(closeBtn => {
     closeBtn.addEventListener('click', () => {
         addHabitModal.style.display = 'none';
         deleteConfirmModal.style.display = 'none';
+        document.getElementById('add-income-modal').style.display = 'none';
+        document.getElementById('add-expense-modal').style.display = 'none';
+        document.getElementById('add-weight-modal').style.display = 'none';
     });
 });
 
@@ -793,12 +1048,6 @@ confirmDeleteButton.addEventListener('click', () => {
 
 // Fermer les modales en cliquant en dehors
 window.addEventListener('click', (event) => {
-    if (event.target === addHabitModal) {
-        addHabitModal.style.display = 'none';
-    }
-    if (event.target === deleteConfirmModal) {
-        deleteConfirmModal.style.display = 'none';
-    }
     if (event.target.classList.contains('modal')) {
         event.target.style.display = 'none';
     }
