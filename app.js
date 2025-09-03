@@ -41,8 +41,6 @@ const todayDateElement = document.getElementById('today-date');
 const calendarLegend = document.getElementById('calendar-legend');
 const navItems = document.querySelectorAll('.nav-item');
 const emojiSuggestions = document.querySelectorAll('.emoji-suggestion');
-const resetWeightButton = document.getElementById('reset-weight-btn');
-const resetAccountingButton = document.getElementById('reset-accounting-btn');
 
 // Initialisation de l'application
 function initApp() {
@@ -58,25 +56,39 @@ function initApp() {
     initAccounting();
 
     // Événements pour le suivi de poids
-    document.getElementById('save-weight-setup')?.addEventListener('click', setupWeightProfile);
-    document.getElementById('add-weight-btn')?.addEventListener('click', () => {
+    const saveWeightSetupBtn = document.getElementById('save-weight-setup');
+    const addWeightBtn = document.getElementById('add-weight-btn');
+    const saveWeightBtn = document.getElementById('save-weight');
+    
+    if (saveWeightSetupBtn) saveWeightSetupBtn.addEventListener('click', setupWeightProfile);
+    if (addWeightBtn) addWeightBtn.addEventListener('click', () => {
         document.getElementById('add-weight-modal').style.display = 'block';
     });
-    document.getElementById('save-weight')?.addEventListener('click', recordWeight);
+    if (saveWeightBtn) saveWeightBtn.addEventListener('click', recordWeight);
 
     // Événements pour la comptabilité
-    document.getElementById('save-accounting-setup')?.addEventListener('click', setupAccountingProfile);
-    document.getElementById('add-income-btn')?.addEventListener('click', () => {
+    const saveAccountingSetupBtn = document.getElementById('save-accounting-setup');
+    const addIncomeBtn = document.getElementById('add-income-btn');
+    const addExpenseBtn = document.getElementById('add-expense-btn');
+    const saveIncomeBtn = document.getElementById('save-income');
+    const saveExpenseBtn = document.getElementById('save-expense');
+    
+    if (saveAccountingSetupBtn) saveAccountingSetupBtn.addEventListener('click', setupAccountingProfile);
+    if (addIncomeBtn) addIncomeBtn.addEventListener('click', () => {
         document.getElementById('add-income-modal').style.display = 'block';
     });
-    document.getElementById('add-expense-btn')?.addEventListener('click', () => {
+    if (addExpenseBtn) addExpenseBtn.addEventListener('click', () => {
         document.getElementById('add-expense-modal').style.display = 'block';
     });
-    document.getElementById('save-income')?.addEventListener('click', recordIncome);
-    document.getElementById('save-expense')?.addEventListener('click', recordExpense);
+    if (saveIncomeBtn) saveIncomeBtn.addEventListener('click', recordIncome);
+    if (saveExpenseBtn) saveExpenseBtn.addEventListener('click', recordExpense);
     
-    resetWeightButton?.addEventListener('click', confirmResetWeightData);
-    resetAccountingButton?.addEventListener('click', confirmResetAccountingData);
+    // Événements de réinitialisation
+    const resetWeightBtn = document.getElementById('reset-weight-btn');
+    const resetAccountingBtn = document.getElementById('reset-accounting-btn');
+    
+    if (resetWeightBtn) resetWeightBtn.addEventListener('click', confirmResetWeightData);
+    if (resetAccountingBtn) resetAccountingBtn.addEventListener('click', confirmResetAccountingData);
     
     // Initialiser le graphique si on est sur la vue progrès
     if (progressView.classList.contains('active')) {
@@ -100,11 +112,11 @@ function initWeightTracker() {
     const weightSetup = document.getElementById('weight-setup');
     const weightTracker = document.getElementById('weight-tracker');
     
-    if (weightProfile) {
+    if (weightProfile && weightSetup && weightTracker) {
         weightSetup.style.display = 'none';
         weightTracker.style.display = 'block';
         updateWeightUI();
-    } else {
+    } else if (weightSetup && weightTracker) {
         weightSetup.style.display = 'block';
         weightTracker.style.display = 'none';
     }
@@ -136,8 +148,13 @@ function setupWeightProfile() {
     saveToStorage('weightProfile', weightProfile);
     
     // Afficher la vue de suivi
-    document.getElementById('weight-setup').style.display = 'none';
-    document.getElementById('weight-tracker').style.display = 'block';
+    const weightSetup = document.getElementById('weight-setup');
+    const weightTracker = document.getElementById('weight-tracker');
+    
+    if (weightSetup && weightTracker) {
+        weightSetup.style.display = 'none';
+        weightTracker.style.display = 'block';
+    }
     
     updateWeightUI();
 }
@@ -331,21 +348,23 @@ function initAccounting() {
     const accountingSetup = document.getElementById('accounting-setup');
     const accountingTracker = document.getElementById('accounting-tracker');
     
-    if (accountingProfile) {
+    if (accountingProfile && accountingSetup && accountingTracker) {
         accountingSetup.style.display = 'none';
         accountingTracker.style.display = 'block';
         updateAccountingUI();
-    } else {
+    } else if (accountingSetup && accountingTracker) {
         accountingSetup.style.display = 'block';
         accountingTracker.style.display = 'none';
     }
 }
 
 function setupAccountingProfile() {
-    const initialCapital = parseFloat(document.getElementById('initial-capital').value);
+    const initialCapitalInput = document.getElementById('initial-capital');
+    const initialCapital = parseFloat(initialCapitalInput.value);
     
     if (isNaN(initialCapital)) {
         alert('Veuillez entrer un montant valide pour le capital de départ');
+        initialCapitalInput.focus();
         return;
     }
     
@@ -365,8 +384,13 @@ function setupAccountingProfile() {
     saveToStorage('accountingProfile', accountingProfile);
     
     // Afficher la vue de suivi
-    document.getElementById('accounting-setup').style.display = 'none';
-    document.getElementById('accounting-tracker').style.display = 'block';
+    const accountingSetup = document.getElementById('accounting-setup');
+    const accountingTracker = document.getElementById('accounting-tracker');
+    
+    if (accountingSetup && accountingTracker) {
+        accountingSetup.style.display = 'none';
+        accountingTracker.style.display = 'block';
+    }
     
     updateAccountingUI();
 }
@@ -522,8 +546,10 @@ function resetAccountingData() {
     const accountingSetup = document.getElementById('accounting-setup');
     const accountingTracker = document.getElementById('accounting-tracker');
     
-    accountingSetup.style.display = 'block';
-    accountingTracker.style.display = 'none';
+    if (accountingSetup && accountingTracker) {
+        accountingSetup.style.display = 'block';
+        accountingTracker.style.display = 'none';
+    }
     
     // Réinitialiser les champs du formulaire
     document.getElementById('initial-capital').value = '';
@@ -916,6 +942,14 @@ function getCompletedHabitsForDate(date) {
     return habits.filter(habit => habit.completedDates.includes(dateStr));
 }
 
+// Fonction pour fermer toutes les modales
+function closeAllModals() {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.style.display = 'none';
+    });
+}
+
 // Gestion du menu de navigation
 function toggleMenu(event) {
     event.stopPropagation();
@@ -965,8 +999,10 @@ function resetWeightData() {
     const weightSetup = document.getElementById('weight-setup');
     const weightTracker = document.getElementById('weight-tracker');
     
-    weightSetup.style.display = 'block';
-    weightTracker.style.display = 'none';
+    if (weightSetup && weightTracker) {
+        weightSetup.style.display = 'block';
+        weightTracker.style.display = 'none';
+    }
     
     // Réinitialiser les champs du formulaire
     document.getElementById('initial-weight').value = '';
@@ -1027,13 +1063,7 @@ addHabitButton.addEventListener('click', () => {
 });
 
 closeModal.forEach(closeBtn => {
-    closeBtn.addEventListener('click', () => {
-        addHabitModal.style.display = 'none';
-        deleteConfirmModal.style.display = 'none';
-        document.getElementById('add-income-modal').style.display = 'none';
-        document.getElementById('add-expense-modal').style.display = 'none';
-        document.getElementById('add-weight-modal').style.display = 'none';
-    });
+    closeBtn.addEventListener('click', closeAllModals);
 });
 
 cancelDeleteButton.addEventListener('click', () => {
@@ -1049,7 +1079,7 @@ confirmDeleteButton.addEventListener('click', () => {
 // Fermer les modales en cliquant en dehors
 window.addEventListener('click', (event) => {
     if (event.target.classList.contains('modal')) {
-        event.target.style.display = 'none';
+        closeAllModals();
     }
 });
 
