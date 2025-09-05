@@ -469,7 +469,9 @@ function updateAccountingUI() {
     // Calculer les totaux
     let totalIncome = 0;
     let totalExpenses = 0;
-    let currentCapital = accountingProfile.initialCapital;
+    
+    // Le capital initial est déjà dans accountingData, donc on commence à 0
+    let currentCapital = 0;
     
     accountingData.forEach(entry => {
         if (entry.type === 'income' || entry.type === 'initial') {
@@ -520,13 +522,22 @@ function renderAccountingHistory() {
         const amountClass = isIncome ? 'positive' : 'negative';
         const amountPrefix = isIncome ? '+' : '-';
         
+        // Pour le capital initial négatif, afficher correctement
+        let displayAmount = entry.amount;
+        let displayPrefix = amountPrefix;
+        
+        if (entry.type === 'initial' && entry.amount < 0) {
+            displayAmount = Math.abs(entry.amount);
+            displayPrefix = '-';
+        }
+        
         entryElement.innerHTML = `
             <div class="entry-icon">${isIncome ? '💰' : '💸'}</div>
             <div class="entry-details">
                 <div class="entry-description">${entry.description}</div>
                 <div class="entry-date">${dateFormatted}</div>
             </div>
-            <div class="entry-amount ${amountClass}">${amountPrefix}${entry.amount.toFixed(2)} €</div>
+            <div class="entry-amount ${amountClass}">${displayPrefix}${displayAmount.toFixed(2)} €</div>
         `;
         
         accountingEntriesContainer.appendChild(entryElement);
