@@ -4,6 +4,7 @@ let currentDate = new Date();
 let calendarDate = new Date();
 let currentHabitToDelete = null;
 let selectedTimeFilter = 7; // Filtre par défaut: 7 jours
+let selectedChartType = 'pie'; // Type de graphique par défaut
 let progressChart = null;
 let weightData = [];
 let weightProfile = null;
@@ -797,6 +798,50 @@ function calculateHabitStats(days = 7) {
     return { stats, totalTime };
 }
 
+function calculateHabitStatsOverTime(days = 7) {
+    const now = new Date();
+    const startDate = new Date(now);
+    startDate.setDate(now.getDate() - days);
+    
+    // Créer un tableau de dates pour la période
+    const dates = [];
+    const dateLabels = [];
+    const datasets = [];
+    
+    for (let i = 0; i <= days; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        dates.push(date);
+        dateLabels.push(date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
+    }
+    
+    // Préparer les données pour chaque habitude
+    habits.forEach(habit => {
+        const habitData = {
+            label: `${habit.emoji} ${habit.name}`,
+            data: [],
+            borderColor: habit.color,
+            backgroundColor: `${habit.color}20`,
+            fill: true,
+            tension: 0.3
+        };
+        
+        // Pour chaque date, calculer le temps cumulé
+        let cumulativeTime = 0;
+        dates.forEach(date => {
+            const dateStr = date.toDateString();
+            if (habit.completedDates.includes(dateStr)) {
+                cumulativeTime += habit.duration;
+            }
+            habitData.data.push(cumulativeTime);
+        });
+        
+        datasets.push(habitData);
+    });
+    
+    return { labels: dateLabels, datasets };
+}
+
 function renderProgressChart() {
     const ctx = document.getElementById('progress-chart');
     
@@ -807,6 +852,14 @@ function renderProgressChart() {
         progressChart.destroy();
     }
     
+    if (selectedChartType === 'pie') {
+        renderPieChart(ctx);
+    } else if (selectedChartType === 'line') {
+        renderLineChart(ctx);
+    }
+}
+
+function renderPieChart(ctx) {
     const { stats, totalTime } = calculateHabitStats(selectedTimeFilter);
     
     if (stats.length === 0) {
@@ -869,6 +922,94 @@ function renderProgressChart() {
                     <span>${stat.emoji} ${stat.name}</span>
                 </div>
                 <div class="stat-value">${stat.totalTime} min (${percentage}%)</div>
+            </div>
+        `;
+    });
+    
+    summaryHTML += `
+        <div class="total-time">
+            Temps total: ${totalTime} minutes
+        </div>
+    `;
+    
+    document.getElementById('stats-summary').innerHTML = summaryHTML;
+}
+
+function renderLineChart(ctx) {
+    const { labels, datasets } = calculateHabitStatsOverTime(selectedTimeFilter);
+    
+    if (datasets.length === 0) {
+        document.getElementById('stats-summary').innerHTML = `
+            <div class="empty-state">
+                <p>Aucune donnée à afficher pour cette période.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Créer le graphique de ligne
+    progressChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 15,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.raw} min`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Temps cumulé (min)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Calculer le temps total pour le résumé
+    let totalTime = 0;
+    datasets.forEach(dataset => {
+        totalTime += dataset.data[dataset.data.length - 1] || 0;
+    });
+    
+    // Afficher le résumé des statistiques
+    let summaryHTML = '';
+    datasets.forEach(dataset => {
+        const totalHabitTime = dataset.data[dataset.data.length - 1] || 0;
+        const percentage = totalTime > 0 ? Math.round((totalHabitTime / totalTime) * 100) : 0;
+        
+        summaryHTML += `
+            <div class="stat-item">
+                <div class="stat-label">
+                    <div class="stat-color" style="background-color: ${dataset.borderColor}"></div>
+                    <span>${dataset.label}</span>
+                </div>
+                <div class="stat-value">${totalHabitTime} min (${percentage}%)</div>
             </div>
         `;
     });
@@ -1104,6 +1245,18 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             this.classList.add('active');
             selectedTimeFilter = parseInt(this.getAttribute('data-days'));
+            renderProgressChart();
+        });
+    });
+    
+    // Gestion des types de graphique
+    document.querySelectorAll('.chart-type-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.chart-type-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+            this.classList.add('active');
+            selectedChartType = this.getAttribute('data-type');
             renderProgressChart();
         });
     });
