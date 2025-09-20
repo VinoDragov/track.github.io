@@ -822,11 +822,11 @@ function calculateHabitStatsOverTime(days = 7) {
             data: [],
             borderColor: habit.color,
             backgroundColor: `${habit.color}20`,
-            fill: true,
+            fill: false,
             tension: 0.3
         };
         
-        // Pour chaque date, calculer le temps cumulé
+        // Pour chaque date, calculer le temps cumulé jusqu'à cette date
         let cumulativeTime = 0;
         dates.forEach(date => {
             const dateStr = date.toDateString();
@@ -836,7 +836,10 @@ function calculateHabitStatsOverTime(days = 7) {
             habitData.data.push(cumulativeTime);
         });
         
-        datasets.push(habitData);
+        // Ne pas afficher les habitudes qui n'ont aucune donnée dans la période
+        if (cumulativeTime > 0) {
+            datasets.push(habitData);
+        }
     });
     
     return { labels: dateLabels, datasets };
